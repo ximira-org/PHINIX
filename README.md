@@ -18,7 +18,7 @@ The main repository for NOVA. The current setup is developed and tested on Ubunt
 ### Build & install
 * `colcon build`
 
-`source install/setup.bash`
+* `source install/setup.bash`
 
 ### Launch camera node
 * `ros2 launch depthai_ros_driver camera.launch.py camera_model:=OAK-D-PRO-W`
