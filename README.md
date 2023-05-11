@@ -52,7 +52,7 @@ Open new terminal:
 
 ### Status:
 
-- [ ] Initial architecture design and documentation
+- [x] Initial architecture design and documentation
 - [x] depthai-ros integration
 - [x] initial version of sensor abstraction
 - [x] text-detection (openvino gpu)
