@@ -1,5 +1,5 @@
 # NOVA
-The main repository for NOVA
+The main repository for NOVA. The current setup is developed and tested on Ubuntu 20.04 with ROS2 Foxy.
 
 ## Setup and Running:
 
@@ -42,6 +42,7 @@ Open new terminal:
 `ros2 run nova_text_detector nova_text_detector_py_exe`
 
 ### Launch Rviz2 for visualization
+Open new terminal:
 
 `Rviz2` # view topics by adding desired topic in the GUI
 
