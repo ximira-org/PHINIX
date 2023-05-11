@@ -34,7 +34,7 @@ Open new terminal:
 
 * `ros2 run nova_sensor_abstractor nova_sensor_abstractor_py_exe`
 
-### Launch text detector
+### Launch text detector (Note: works only with Intel GPU)
 Open new terminal:
 
 * `cd ~/NOVA`
@@ -50,6 +50,28 @@ Open new terminal:
 
 * `Rviz2` # view topics by adding desired topic in the GUI
 
+### Status:
 
-
-
+- [ ] Initial architecture design and documentation
+- [x] depthai-ros integration
+- [x] initial version of sensor abstraction
+- [x] text-detection (openvino gpu)
+- [x] testing depthai object detection models
+- [x] running depthai image overlays
+- [ ] text detection CPU
+- [ ] custom image overlays
+- [ ] advanced sensor abstraction
+- [ ] NCS2 integration
+- [ ] wrist band integration
+- [ ] earphone integration
+- [ ] speech recognition module
+- [ ] text-to-speech module
+- [ ] obstacle detection (3D)
+- [ ] object detection node
+- [ ] palm recognition
+- [ ] facial recognition
+- [ ] sidewalk scene understanding
+- [ ] floor / ground segmentation [3D]
+- [ ] elevation detection
+- [ ] portal detection
+- [ ] currency detection?

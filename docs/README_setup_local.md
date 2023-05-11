@@ -47,3 +47,7 @@
 * `ros2 launch depthai_ros_driver camera.launch.py` should produce the necessary topics.
 
 * Note: The above command doesn’t work for OAK-D Lite.
+
+### Text detection (currently only OpenVINO GPU is supported)
+
+* `python3 -m pip install rapidocr-openvinogpu`
