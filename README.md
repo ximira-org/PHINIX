@@ -56,6 +56,7 @@ Open new terminal:
 - [x] depthai-ros integration
 - [x] initial version of sensor abstraction
 - [x] text-detection (openvino gpu)
+- [x] launch config
 - [x] testing depthai object detection models
 - [x] running depthai image overlays
 - [ ] text detection CPU
