@@ -73,6 +73,6 @@ Open new terminal:
 - [ ] facial recognition
 - [ ] sidewalk scene understanding
 - [ ] floor / ground segmentation [3D]
-- [ ] elevation detection
+- [ ] elevation detection [3D]
 - [ ] portal detection
 - [ ] currency detection?
