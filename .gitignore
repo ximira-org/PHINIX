@@ -161,3 +161,5 @@ cython_debug/
 
 src/external/
 src/nova_perception
+log/
+install/
