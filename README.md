@@ -1,50 +1,54 @@
 # NOVA
 The main repository for NOVA. The current setup is developed and tested on Ubuntu 20.04 with ROS2 Foxy.
 
-## Setup and Running:
+## Local machine setup
+
+* Follow [this doc](docs/README_setup_local.md) to setup fully then proceed to next steps.
+
+## Setup code and running:
 
 ### Clone the repo
-`git clone git@github.com:ximira-org/NOVA.git` 
+* `git clone git@github.com:ximira-org/NOVA.git` 
 
-`cd ~/NOVA`
+* `cd ~/NOVA`
 
 ### Clone sub repositories
-`vcs import < nova.repos` # import depency repos
+* `vcs import < nova.repos` # import depency repos
 
 ### Build & install
-`colcon build`
+* `colcon build`
 
 `source install/setup.bash`
 
 ### Launch camera node
-`ros2 launch depthai_ros_driver camera.launch.py camera_model:=OAK-D-PRO-W`
+* `ros2 launch depthai_ros_driver camera.launch.py camera_model:=OAK-D-PRO-W`
 
 ### Launch sensor abstractor
 Open new terminal:
 
-`cd ~/NOVA`
+* `cd ~/NOVA`
 
-`colcon build --packages-select nova_sensor_abstractor`
+* `colcon build --packages-select nova_sensor_abstractor`
 
-`source install/setup.bash`
+* `source install/setup.bash`
 
-`ros2 run nova_sensor_abstractor nova_sensor_abstractor_py_exe`
+* `ros2 run nova_sensor_abstractor nova_sensor_abstractor_py_exe`
 
 ### Launch text detector
 Open new terminal:
 
-`cd ~/NOVA`
+* `cd ~/NOVA`
 
-`colcon build --packages-select nova_text_detector`
+* `colcon build --packages-select nova_text_detector`
 
-`source install/setup.bash`
+* `source install/setup.bash`
 
-`ros2 run nova_text_detector nova_text_detector_py_exe`
+* `ros2 run nova_text_detector nova_text_detector_py_exe`
 
 ### Launch Rviz2 for visualization
 Open new terminal:
 
-`Rviz2` # view topics by adding desired topic in the GUI
+* `Rviz2` # view topics by adding desired topic in the GUI
 
 
 
