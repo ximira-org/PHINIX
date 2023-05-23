@@ -3,7 +3,3 @@ repositories:
     type: git
     url: https://github.com/luxonis/depthai-ros.git
     version: foxy
-  src/nova_perception:
-    type: git
-    url: git@github.com:ximira-org/nova_perception.git
-    version: main
