@@ -3,3 +3,11 @@ repositories:
     type: git
     url: https://github.com/luxonis/depthai-ros.git
     version: foxy
+  src/nova_ui/nova_tts_balacoon:
+    type: git
+    url: git@github.com:ximira-org/nova_tts_balacoon.git
+    version: main
+  src/nova_ui/nova_openwakeword:
+    type: git
+    url: git@github.com:ximira-org/nova_openwakeword.git
+    version: main

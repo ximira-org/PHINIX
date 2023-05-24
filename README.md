@@ -50,6 +50,22 @@ Open new terminal:
 
 * `Rviz2` # view topics by adding desired topic in the GUI
 
+### Launch wakeword detector
+Open new terminal:
+
+* `cd ~/NOVA`
+* `colcon build --packages-select nova_openwakeword`
+* `source install/setup.bash`
+* `ros2 run nova_openwakeword nova_openwakeword_py_exe --ros-args --params-file src/nova_ui/nova_openwakeword/param/nova_openwakeword.param.yaml`
+
+### Launch TTS
+Open new terminal:
+
+* `cd ~/NOVA`
+* `colcon build --packages-select nova_tts_balacoon`
+* `source install/setup.bash`
+* `ros2 run nova_tts_balacoon nova_tts_balacoon_py_exe --ros-args --params-file src/nova_ui/nova_tts_balacoon/param/nova_tts_balacoon.param.yaml`
+
 ### Status:
 
 - [x] Initial architecture design and documentation
@@ -59,6 +75,7 @@ Open new terminal:
 - [x] launch config
 - [x] testing depthai object detection models
 - [x] running depthai image overlays
+- [ ] primary param file - very important. passing separate param file every time is not convenient
 - [ ] text detection CPU
 - [ ] custom image overlays
 - [ ] advanced sensor abstraction
