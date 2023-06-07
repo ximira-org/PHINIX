@@ -1,0 +1,13 @@
+repositories:
+  src/external/depthai-ros:
+    type: git
+    url: https://github.com/luxonis/depthai-ros.git
+    version: foxy
+  src/phinix_ui/phinix_tts_balacoon:
+    type: git
+    url: git@github.com:ximira-org/phinix_tts_balacoon.git
+    version: main
+  src/phinix_ui/phinix_openwakeword:
+    type: git
+    url: git@github.com:ximira-org/phinix_openwakeword.git
+    version: main
