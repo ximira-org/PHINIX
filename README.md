@@ -1,5 +1,5 @@
-# NOVA
-The main repository for NOVA. The current setup is developed and tested on Ubuntu 20.04 with ROS2 Foxy.
+# PHINIX
+The main repository for PHINIX. The current setup is developed and tested on Ubuntu 20.04 with ROS2 Foxy.
 
 ## Local machine setup
 
@@ -8,12 +8,12 @@ The main repository for NOVA. The current setup is developed and tested on Ubunt
 ## Setup code and running:
 
 ### Clone the repo
-* `git clone git@github.com:ximira-org/NOVA.git` 
+* `git clone git@github.com:ximira-org/PHINIX.git` 
 
-* `cd ~/NOVA`
+* `cd ~/PHINIX`
 
 ### Clone sub repositories
-* `vcs import < nova.repos` # import depency repos
+* `vcs import < phinix.repos` # import depency repos
 
 ### Build & install
 * `colcon build`
@@ -26,24 +26,24 @@ The main repository for NOVA. The current setup is developed and tested on Ubunt
 ### Launch sensor abstractor
 Open new terminal:
 
-* `cd ~/NOVA`
+* `cd ~/PHINIX`
 
-* `colcon build --packages-select nova_sensor_abstractor`
+* `colcon build --packages-select phinix_sensor_abstractor`
 
 * `source install/setup.bash`
 
-* `ros2 run nova_sensor_abstractor nova_sensor_abstractor_py_exe`
+* `ros2 run phinix_sensor_abstractor phinix_sensor_abstractor_py_exe`
 
 ### Launch text detector (Note: works only with Intel GPU)
 Open new terminal:
 
-* `cd ~/NOVA`
+* `cd ~/PHINIX`
 
-* `colcon build --packages-select nova_text_detector`
+* `colcon build --packages-select phinix_text_detector`
 
 * `source install/setup.bash`
 
-* `ros2 run nova_text_detector nova_text_detector_py_exe`
+* `ros2 run phinix_text_detector phinix_text_detector_py_exe`
 
 ### Launch Rviz2 for visualization
 Open new terminal:
@@ -53,18 +53,18 @@ Open new terminal:
 ### Launch wakeword detector
 Open new terminal:
 
-* `cd ~/NOVA`
-* `colcon build --packages-select nova_openwakeword`
+* `cd ~/PHINIX`
+* `colcon build --packages-select phinix_openwakeword`
 * `source install/setup.bash`
-* `ros2 run nova_openwakeword nova_openwakeword_py_exe --ros-args --params-file src/nova_ui/nova_openwakeword/param/nova_openwakeword.param.yaml`
+* `ros2 run phinix_openwakeword phinix_openwakeword_py_exe --ros-args --params-file src/phinix_ui/phinix_openwakeword/param/phinix_openwakeword.param.yaml`
 
 ### Launch TTS
 Open new terminal:
 
-* `cd ~/NOVA`
-* `colcon build --packages-select nova_tts_balacoon`
+* `cd ~/PHINIX`
+* `colcon build --packages-select phinix_tts_balacoon`
 * `source install/setup.bash`
-* `ros2 run nova_tts_balacoon nova_tts_balacoon_py_exe --ros-args --params-file src/nova_ui/nova_tts_balacoon/param/nova_tts_balacoon.param.yaml`
+* `ros2 run phinix_tts_balacoon phinix_tts_balacoon_py_exe --ros-args --params-file src/phinix_ui/phinix_tts_balacoon/param/phinix_tts_balacoon.param.yaml`
 
 ### Status:
 

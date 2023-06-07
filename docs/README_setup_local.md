@@ -1,4 +1,4 @@
-## This document describes how to setup NUC to run NOVA locally. 
+## This document describes how to setup NUC to run PHINIX locally. 
 
 ### Install Ubuntu
 * Download Ubuntu 20.04 from [here](https://releases.ubuntu.com/focal/)
