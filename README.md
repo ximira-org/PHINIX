@@ -64,6 +64,7 @@ Open new terminal:
 * `cd ~/PHINIX`
 * `colcon build --packages-select phinix_tts_balacoon`
 * `source install/setup.bash`
+* `ros2 run phinix_tts_balacoon phinix_tts_simulator_py_exe`  # if simulator is needed
 * `ros2 run phinix_tts_balacoon phinix_tts_balacoon_py_exe --ros-args --params-file src/phinix_ui/phinix_tts_balacoon/param/phinix_tts_balacoon.param.yaml`
 
 ### Status:
