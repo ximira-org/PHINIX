@@ -74,7 +74,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libqt5svg5 ros-foxy-rviz2 ros-foxy-rviz2 ros-foxy-vision-msgs ros-foxy-cv-bridge \
+    libqt5svg5 ros-foxy-rviz2 ros-foxy-rviz2 ros-foxy-vision-msgs ros-foxy-cv-bridge ros-foxy-camera-info-manager* ros-foxy-image-transport*\
     && rm -rf /var/lib/apt/lists/*
 
 RUN python3 -m pip install --upgrade pip
@@ -120,8 +120,9 @@ RUN python3 -m pip install openwakeword \
 
 WORKDIR /home/
 RUN mkdir -p /home/PHINIX
+COPY ./ /home/PHINIX
+# RUN wget -qO- https://raw.githubusercontent.com/luxonis/depthai-ros/main/install_dependencies.sh | sudo bash
+RUN sh -c "$(wget https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)"
+RUN cd /home/PHINIX/src/external && rosdep install --from-paths . --ignore-src  -y
 ENV DEBIAN_FRONTEND=dialog
-# COPY ./ /home/PHINIX
-WORKDIR /home/PHINIX/
-# RUN rosdep install --from-paths src --ignore-src -r -y
-
+WORKDIR /home/PHINIX
