@@ -13,6 +13,8 @@ The main repository for PHINIX. The current setup is developed and tested on Ubu
 * `cd ~/PHINIX`
 
 ### Clone sub repositories
+Install vcs tool: `sudo pip install vcstool`
+
 * `vcs import < phinix.repos` # import depency repos
 
 ### build docker image
