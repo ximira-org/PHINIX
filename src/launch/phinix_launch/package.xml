@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>phinix_launch</name>
+  <version>2.8.2</version>
+  <description>PHINIX launch file</description>
+  <maintainer email="jagadishkmahendran@gmail.com">Jagadish</maintainer>
+
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>ament_cmake_auto</depend>
+  <depend>camera_calibration</depend>
+  <depend>rclcpp</depend>
+  <depend>rclcpp_components</depend>
+  <depend>sensor_msgs</depend>
+  <depend>vision_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>cv_bridge</depend>
+  <depend>image_transport</depend>
+  <depend>image_transport_plugins</depend>
+  <depend>image_pipeline</depend>
+  <depend>depthai</depend>
+  <depend>depthai_bridge</depend>
+  <depend>depthai_descriptions</depend>
+  <depend>depthai_ros_msgs</depend>
+  <depend>depthai_examples</depend>
+  <depend>pluginlib</depend>
+  <depend>diagnostic_updater</depend>
+  <depend>diagnostic_msgs</depend>
+  <depend>depthai_ros_driver</depend>
+  <depend>phinix_sensor_abstractor</depend>
+  <depend>phinix_text_detector</depend>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
