@@ -101,6 +101,10 @@ def generate_launch_description():
 
     ld = LaunchDescription(declared_arguments + [OpaqueFunction(function=launch_setup)])
 
+    phinix_obstacle_det_node = Node(
+        package="depthmap_gpu",
+        executable="depthmap"
+    )
 
     phinix_sensor_abstractor_node = Node(
         package="phinix_sensor_abstractor",
@@ -123,6 +127,7 @@ def generate_launch_description():
         parameters=[LaunchConfiguration('tts_balacoon_node_param_file')],
     )
 
+    ld.add_action(phinix_obstacle_det_node)
     ld.add_action(tts_balacoon_param)
     ld.add_action(phinix_sensor_abstractor_node)
     ld.add_action(phinix_text_detector_node)

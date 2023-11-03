@@ -85,7 +85,7 @@ GRID_MODE = GridMode.GRID
 # =============================================================
 
 bridge = CvBridge()
-TOPIC_NAME = "depthmap_topic"
+TOPIC_NAME = "/oak/stereo/image_raw"
 PUBLISH_TOPIC_NAME = "depthmap_result"
 # ====================== OpenCL ==========================
 # Depth map dimentions
