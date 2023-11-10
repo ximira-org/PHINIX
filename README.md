@@ -36,6 +36,8 @@ If PHINIX repo is downloaded to different location, replace `/home/<username>/PH
 
 * `cd /home/PHINIX`
 
+* In file `~/PHINIX/src/external/depthai-ros/depthai_filters/CMakeLists.txt` edit line 7 from `set(opencv_version 4)` to `set(opencv_version 4.7.0)`
+
 * `source /opt/ros/foxy/setup.bash`
 
 * `./src/external/depthai-ros/build.sh -s $BUILD_SEQUENTIAL -r 1 -m 1`
