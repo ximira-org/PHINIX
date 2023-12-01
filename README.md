@@ -1,11 +1,29 @@
 # PHINIX
 The main repository for PHINIX. The current setup is developed and tested on Ubuntu 20.04 with ROS2 Foxy.
 
-## Local machine setup
-
-* Follow [this doc](docs/README_setup_local.md) to setup fully then proceed to next steps.
-
 ## Setup code and running:
+
+### Install Ubuntu
+* Download Ubuntu 20.04 from [here](https://releases.ubuntu.com/focal/)
+
+* Installation: follow the instructions from [here](https://ubuntu.com/tutorials/install-ubuntu-desktop#1-overview).
+
+### Install ROS2 Foxy
+* Install ROS2 Foxy using the binary version. Follow [this](https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html).
+
+* Include `source /opt/ros/foxy/setup.bash` in bashrc.
+
+* Make sure ROS2 installed correctly by running the talker listener examples explained in the above link.
+
+* Install colcon for ROS2, follow [here](https://colcon.readthedocs.io/en/released/user/installation.html).
+
+### Install vim and git
+* `sudo apt-get install vim git -y`
+
+### Setup git
+* Follow [this](https://docs.github.com/en/get-started/getting-started-with-git/setting-your-username-in-git) and [this](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-email-preferences/setting-your-commit-email-address) to setup git configs. 
+
+* Set up SSH key using [this](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent).
 
 ### Clone the repo
 
