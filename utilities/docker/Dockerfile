@@ -79,6 +79,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN python3 -m pip install --upgrade pip
 
+# install dependencies for obstacle detector
+RUN python3 -m pip install pyopencl
+
 # install dependencies for TTS
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libportaudio2
