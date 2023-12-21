@@ -225,6 +225,7 @@ class ObstacleDetectionNode(Node):
         self.top_right_cell_coords = None
         self.center_right_cell_coords = None
         self.bottom_right_cell_coords = None
+        self.obstacle_presence_list = []
 
     def callback(self, depthmap_ros_image: Image):
         # convert ros image to numpy array depthmap
@@ -260,10 +261,18 @@ class ObstacleDetectionNode(Node):
                 self.top_center_cell_coords, self.center_center_cell_coords, self.bottom_center_cell_coords,
                 self.top_right_cell_coords, self.center_right_cell_coords, self.bottom_right_cell_coords]
 
-        for cell in cells:
+        for (cell, obs_present) in zip(cells, self.obstacle_presence_list):
             if cell is not None:
                 self.disp_img = cv2.rectangle(self.disp_img, (cell[1][0], cell[0][0]), 
                                                     (cell[1][1], cell[0][1]), (0,200,255), 7)
+                if obs_present == 1:
+                    marker_x = int((cell[1][0] + cell[1][1])/2)
+                    marker_y = int((cell[0][0] + cell[0][1])/2)
+                    cv2.drawMarker(self.disp_img, (marker_x, marker_y), color=[0, 0, 255], thickness=5, 
+                                    markerType= cv2.MARKER_TILTED_CROSS, line_type=cv2.LINE_AA,
+                                    markerSize=10)
+                    cv2.circle(self.disp_img, (marker_x, marker_y), radius=15, color=[255,0,255], thickness=2)
+
         msg = self.bridge.cv2_to_imgmsg(self.disp_img, "bgr8")
         self.disp_vis_publisher_.publish(msg)
             
@@ -332,7 +341,7 @@ class ObstacleDetectionNode(Node):
 
         grid_np = [top_left, center_left, bottom_left, top_center, center_center, bottom_center, top_right, center_right, bottom_right]
 
-        grid_sum = []
+        self.obstacle_presence_list = []
         for cell in grid_np:
             cell = cell.flatten()
             update_threads_size(cell)
@@ -345,13 +354,13 @@ class ObstacleDetectionNode(Node):
             elif MODE == DeviceMode.CPU:
                 cell_sum = inference_cpu(cell)
             if cell_sum > NO_PTS_TO_BE_AN_OBSTACLE:
-                grid_sum.append(1)
+                self.obstacle_presence_list.append(1)
             else:
-                grid_sum.append(0)
+                self.obstacle_presence_list.append(0)
         print("[top_left, center_left, bottom_left, top_center, center_center, bottom_center, top_right, center_right, bottom_right]")
-        print(grid_sum)
+        print(self.obstacle_presence_list)
         print("*" * 40)
-        return grid_sum
+        return self.obstacle_presence_list
 
 def run_ros():
     rclpy.init()
