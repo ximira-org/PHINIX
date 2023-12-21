@@ -15,6 +15,7 @@ import cv2
 
 RANGE = 500 #mm
 SIDE_FOV_CROP_RATIO = 0.0
+NO_PTS_TO_BE_AN_OBSTACLE = 20
 
 KERNEL_TEXT = """
 __kernel void depthmap_sum_reduction(__global const float* depthmap, __local int* local_sum, __global int* group_sum, int N) 
@@ -343,8 +344,10 @@ class ObstacleDetectionNode(Node):
                 cell_sum = inference_map_pinned_memory(cell)
             elif MODE == DeviceMode.CPU:
                 cell_sum = inference_cpu(cell)
-
-            grid_sum.append(cell_sum)
+            if cell_sum > NO_PTS_TO_BE_AN_OBSTACLE:
+                grid_sum.append(1)
+            else:
+                grid_sum.append(0)
         print("[top_left, center_left, bottom_left, top_center, center_center, bottom_center, top_right, center_right, bottom_right]")
         print(grid_sum)
         print("*" * 40)
