@@ -128,4 +128,8 @@ COPY ./ /home/PHINIX
 RUN sh -c "$(wget https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)"
 RUN cd /home/PHINIX/src/external && rosdep install --from-paths . --ignore-src  -y
 ENV DEBIAN_FRONTEND=dialog
+RUN cd /home/PHINIX/src/external && cmake -S depthai-python/depthai-core -B /build -D CMAKE_BUILD_TYPE=Release -D BUILD_SHARED_LIBS=ON -D CMAKE_INSTALL_PREFIX=/usr/local
+RUN cmake --build /build --parallel 4 --config Relase --target install
+RUN cd /home/PHINIX/src/external/depthai-python && python3 -m pip install .
+RUN python3 -m pip install blobconverter
 WORKDIR /home/PHINIX
