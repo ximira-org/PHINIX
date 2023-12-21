@@ -10,7 +10,7 @@ topic_mappings_type = {
 "/oak/stereo/camera_info" : ["/phinix/stereo/camera_info", CameraInfo],
 "/oak/rgb/image_raw" : ["/phinix/rgb/image_raw", Image] ,
 "/oak/depth/image_raw" : ["/phinix/depth/image_raw", Image] ,
-"/oak/disparity/image_raw" : ["/phinix/dispartiy/image_raw", Image] ,
+"/oak/disparity/image_raw" : ["/phinix/disparity/image_raw", Image] ,
 }
 
 class NoveSensorAbstractorNode(Node):
