@@ -19,6 +19,11 @@ def generate_launch_description():
         default_value=tts_balacoon_node_param_file,
         description='tts settings'
     )
+    
+    oak_ros_node = Node(
+        package="oak_ros",
+        executable="oak_ros_py_exe"
+    )
 
     phinix_obstacle_detector_node = Node(
         package="phinix_obstacle_detector",
@@ -47,6 +52,7 @@ def generate_launch_description():
     )
 
     ld = [
+        oak_ros_node,
         phinix_obstacle_detector_node,
         tts_balacoon_param,
         phinix_text_detector_node,
