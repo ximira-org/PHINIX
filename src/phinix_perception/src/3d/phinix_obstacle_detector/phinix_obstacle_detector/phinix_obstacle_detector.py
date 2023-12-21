@@ -10,8 +10,11 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import Int32MultiArray
 from std_msgs.msg import MultiArrayDimension
 from cv_bridge import CvBridge
+from sensor_msgs.msg import Image
+import cv2 
 
 RANGE = 500 #mm
+SIDE_FOV_CROP_RATIO = 0.0
 
 KERNEL_TEXT = """
 __kernel void depthmap_sum_reduction(__global const float* depthmap, __local int* local_sum, __global int* group_sum, int N) 
@@ -86,9 +89,10 @@ MODE = DeviceMode.CPU
 GRID_MODE = GridMode.GRID
 # =============================================================
 
-bridge = CvBridge()
 TOPIC_NAME = "/phinix/depth/image_raw"
-PUBLISH_TOPIC_NAME = "depthmap_result"
+TOPIC_PHINIX_DISPARITY_IMG = "/phinix/disparity/image_raw"
+TOPIC_DISP_VIS_IMG = "/phinix/vis/disparity"
+PUBLISH_TOPIC_NAME = "/phinix/obstacle_detector/detections"
 # ====================== OpenCL ==========================
 # Depth map dimentions
 WIDTH = 1920
@@ -194,74 +198,8 @@ def inference_cpu(depthmap_numpy):
     print("Result = ", "CPU = ", cpu_sum, " .. Time CPU = ", round((t2-t1) * 1000,4))
     return cpu_sum
 
-def inference_grid(depthmap_grid):
-    print("GRID ")
-    # clear the dummy data stored in both input & output buffers (depth map & group sum) from the previous run
-    zero_depthmap = np.zeros_like(depthmap_np).flatten()
-    zero_group_sum = np.zeros_like(group_sums_cpu, dtype=np.int32).flatten()
-    cl._enqueue_write_buffer(queue, depthmap_gpu, zero_depthmap, is_blocking=True)
-    cl._enqueue_write_buffer(queue, group_sums, zero_group_sum, is_blocking=True)
-    
-    # # Split the grid into cells
-    # top_left = depthmap_grid[:depthmap_grid.shape[0]//3, :depthmap_grid.shape[1]//3]
-    # top_center = depthmap_grid[depthmap_grid.shape[0]//3:2*depthmap_grid.shape[1]//3, :depthmap_grid.shape[1]//3]
-    # top_right = depthmap_grid[2*depthmap_grid.shape[0]//3:, :depthmap_grid.shape[1]//3]
 
-    # center_left   = depthmap_grid[:depthmap_grid.shape[0]//3, depthmap_grid.shape[1]//3:2*depthmap_grid.shape[1]//3]
-    # center_center = depthmap_grid[depthmap_grid.shape[0]//3:2*depthmap_grid.shape[0]//3, depthmap_grid.shape[1]//3:2*depthmap_grid.shape[1]//3]
-    # center_right  = depthmap_grid[2*depthmap_grid.shape[0]//3:, depthmap_grid.shape[1]//3:2*depthmap_grid.shape[1]//3]
 
-    # bottom_left = depthmap_grid[:depthmap_grid.shape[0]//3, 2*depthmap_grid.shape[1]//3:]
-    # bottom_center = depthmap_grid[depthmap_grid.shape[0]//3:2*depthmap_grid.shape[1]//3, 2*depthmap_grid.shape[1]//3:]
-    # bottom_right = depthmap_grid[2*depthmap_grid.shape[0]//3:, 2*depthmap_grid.shape[1]//3:]
-
-    # Split the grid into cells
-    top_left = depthmap_grid[:depthmap_grid.shape[0]//3, :depthmap_grid.shape[1]//3]
-    center_left = depthmap_grid[depthmap_grid.shape[0]//3:2*depthmap_grid.shape[1]//3, :depthmap_grid.shape[1]//3]
-    bottom_left = depthmap_grid[2*depthmap_grid.shape[0]//3:, :depthmap_grid.shape[1]//3]
-
-    top_center   = depthmap_grid[:depthmap_grid.shape[0]//3, depthmap_grid.shape[1]//3:2*depthmap_grid.shape[1]//3]
-    center_center = depthmap_grid[depthmap_grid.shape[0]//3:2*depthmap_grid.shape[0]//3, depthmap_grid.shape[1]//3:2*depthmap_grid.shape[1]//3]
-    bottom_center  = depthmap_grid[2*depthmap_grid.shape[0]//3:, depthmap_grid.shape[1]//3:2*depthmap_grid.shape[1]//3]
-
-    top_right = depthmap_grid[:depthmap_grid.shape[0]//3, 2*depthmap_grid.shape[1]//3:]
-    center_right = depthmap_grid[depthmap_grid.shape[0]//3:2*depthmap_grid.shape[1]//3, 2*depthmap_grid.shape[1]//3:]
-    bottom_right = depthmap_grid[2*depthmap_grid.shape[0]//3:, 2*depthmap_grid.shape[1]//3:]
-    grid_np = [top_left, center_left, bottom_left, top_center, center_center, bottom_center, top_right, center_right, bottom_right]
-
-    for ele in grid_np:
-        print("shape : {}".format( ele.shape))
-    grid_sum = []
-    for cell in grid_np:
-        cell = cell.flatten()
-        update_threads_size(cell)
-
-        # =========== select memory transfer mode ===========
-        if MODE == DeviceMode.GPU:
-            cell_sum = inference(cell)
-        elif MODE == DeviceMode.GPU_MAP:
-            cell_sum = inference_map_pinned_memory(cell)
-        elif MODE == DeviceMode.CPU:
-            cell_sum = inference_cpu(cell)
-
-        grid_sum.append(cell_sum)
-    
-    print("[top_left, center_left, bottom_left, top_center, center_center, bottom_center, top_right, center_right, bottom_right]")
-    print(grid_sum)
-    print("*" * 40)
-    return grid_sum
-            
-def handle_inference_modes(depthmap):
-    # =========================== inference on GPU ===========================
-    if GRID_MODE == GridMode.GRID:
-        return inference_grid(depthmap) # for grid depth map
-    else:    
-        if MODE == DeviceMode.GPU:
-            return inference(depthmap) # for normal memory transfer on full depth map
-        elif MODE == DeviceMode.GPU_MAP:
-            return inference_map_pinned_memory(depthmap) # for pinned memory transfer on full depthmap
-        elif MODE == DeviceMode.CPU:
-            return inference_cpu(depthmap)
 
 
 # ======================== ROS ===========================
@@ -270,12 +208,27 @@ class ObstacleDetectionNode(Node):
     def __init__(self):
         super().__init__("depthmap")
         self.subscriber = self.create_subscription(Image, TOPIC_NAME, self.callback, 10)        
+        self.disp_subscriber = self.create_subscription(Image, TOPIC_PHINIX_DISPARITY_IMG, self.disp_callback, 10)        
         self.publisher = self.create_publisher(Int32MultiArray, PUBLISH_TOPIC_NAME, 10)
+        self.disp_vis_publisher_ = self.create_publisher(Image, TOPIC_DISP_VIS_IMG, 10)
+        self.bridge = CvBridge()
+        self.timer_period = 0.01  # seconds
+        self.timer = self.create_timer(self.timer_period, self.timer_callback)
+        self.disp_img = np.zeros((720, 1280, 3)).astype(np.uint8)
+        self.top_left_cell_coords = None
+        self.center_left_cell_coords = None
+        self.bottom_left_cell_coords = None
+        self.top_center_cell_coords = None
+        self.center_center_cell_coords = None
+        self.bottom_center_cell_coords = None
+        self.top_right_cell_coords = None
+        self.center_right_cell_coords = None
+        self.bottom_right_cell_coords = None
 
     def callback(self, depthmap_ros_image: Image):
         # convert ros image to numpy array depthmap
-        depthmap = bridge.imgmsg_to_cv2(depthmap_ros_image, "16UC1")
-        result = handle_inference_modes(depthmap)
+        self.depthmap = self.bridge.imgmsg_to_cv2(depthmap_ros_image, "16UC1")
+        result = self.handle_inference_modes(self.depthmap, side_fov_crop_ratio=SIDE_FOV_CROP_RATIO)
         # convert to numpy int32
         result = list(np.array(result).astype(np.int32))
         # convert to int32
@@ -296,7 +249,106 @@ class ObstacleDetectionNode(Node):
         msg.layout.dim = [dim_0, dim_1]
         print("========== Result = ", result, " ================")
         self.publisher.publish(msg)        
+    
+    def disp_callback(self, disp_ros_image: Image):
+        self.disp_img = self.bridge.imgmsg_to_cv2(disp_ros_image, "bgr8")
 
+    # Imp Note: TODO Jagadish: This logic needs to be changed to topic syncing
+    def timer_callback(self):
+        cells = [self.top_left_cell_coords, self.center_left_cell_coords, self.bottom_left_cell_coords, 
+                self.top_center_cell_coords, self.center_center_cell_coords, self.bottom_center_cell_coords,
+                self.top_right_cell_coords, self.center_right_cell_coords, self.bottom_right_cell_coords]
+
+        for cell in cells:
+            if cell is not None:
+                self.disp_img = cv2.rectangle(self.disp_img, (cell[1][0], cell[0][0]), 
+                                                    (cell[1][1], cell[0][1]), (0,200,255), 7)
+        msg = self.bridge.cv2_to_imgmsg(self.disp_img, "bgr8")
+        self.disp_vis_publisher_.publish(msg)
+            
+    def handle_inference_modes(self, depthmap, side_fov_crop_ratio):
+        # =========================== inference on GPU ===========================
+        if GRID_MODE == GridMode.GRID:
+            return self.inference_grid(depthmap, side_fov_crop_ratio=side_fov_crop_ratio) # for grid depth map
+        else:    
+            if MODE == DeviceMode.GPU:
+                return inference(depthmap) # for normal memory transfer on full depth map
+            elif MODE == DeviceMode.GPU_MAP:
+                return inference_map_pinned_memory(depthmap) # for pinned memory transfer on full depthmap
+            elif MODE == DeviceMode.CPU:
+                return inference_cpu(depthmap, side_fov_crop_ratio=side_fov_crop_ratio)
+    
+    def inference_grid(self, depthmap_grid, side_fov_crop_ratio=0.05):
+        print("GRID ")
+        # clear the dummy data stored in both input & output buffers (depth map & group sum) from the previous run
+        zero_depthmap = np.zeros_like(depthmap_np).flatten()
+        zero_group_sum = np.zeros_like(group_sums_cpu, dtype=np.int32).flatten()
+        cl._enqueue_write_buffer(queue, depthmap_gpu, zero_depthmap, is_blocking=True)
+        cl._enqueue_write_buffer(queue, group_sums, zero_group_sum, is_blocking=True)
+        
+        # # Split the grid into cells
+        # top_left = depthmap_grid[:depthmap_grid.shape[0]//3, :depthmap_grid.shape[1]//3]
+        # top_center = depthmap_grid[depthmap_grid.shape[0]//3:2*depthmap_grid.shape[1]//3, :depthmap_grid.shape[1]//3]
+        # top_right = depthmap_grid[2*depthmap_grid.shape[0]//3:, :depthmap_grid.shape[1]//3]
+
+        # center_left   = depthmap_grid[:depthmap_grid.shape[0]//3, depthmap_grid.shape[1]//3:2*depthmap_grid.shape[1]//3]
+        # center_center = depthmap_grid[depthmap_grid.shape[0]//3:2*depthmap_grid.shape[0]//3, depthmap_grid.shape[1]//3:2*depthmap_grid.shape[1]//3]
+        # center_right  = depthmap_grid[2*depthmap_grid.shape[0]//3:, depthmap_grid.shape[1]//3:2*depthmap_grid.shape[1]//3]
+
+        # bottom_left = depthmap_grid[:depthmap_grid.shape[0]//3, 2*depthmap_grid.shape[1]//3:]
+        # bottom_center = depthmap_grid[depthmap_grid.shape[0]//3:2*depthmap_grid.shape[1]//3, 2*depthmap_grid.shape[1]//3:]
+        # bottom_right = depthmap_grid[2*depthmap_grid.shape[0]//3:, 2*depthmap_grid.shape[1]//3:]
+
+        crop_fov_in_cols = int(depthmap_grid.shape[1]*side_fov_crop_ratio)
+        print("cropping {} on each side : ", crop_fov_in_cols)
+        depthmap_cropped = depthmap_grid.copy()
+        depthmap_cropped = depthmap_cropped[:, crop_fov_in_cols: depthmap_cropped.shape[1]-crop_fov_in_cols]
+        # Split the grid into cells
+
+        self.top_left_cell_coords = np.array([[0, depthmap_cropped.shape[0]//3], [0, depthmap_cropped.shape[1]//3]])
+        self.center_left_cell_coords = np.array([[depthmap_cropped.shape[0]//3, 2*depthmap_cropped.shape[0]//3], [0, depthmap_cropped.shape[1]//3]])
+        self.bottom_left_cell_coords= np.array([[2*depthmap_cropped.shape[0]//3, depthmap_cropped.shape[0]], [0, depthmap_cropped.shape[1]//3]])
+
+        top_left = depthmap_cropped[self.top_left_cell_coords[0][0] : self.top_left_cell_coords[0][1], self.top_left_cell_coords[1][0]:self.top_left_cell_coords[1][1]]
+        center_left = depthmap_cropped[self.center_left_cell_coords[0][0] : self.center_left_cell_coords[0][1], self.center_left_cell_coords[1][0]:self.center_left_cell_coords[1][1]]
+        bottom_left = depthmap_cropped[self.bottom_left_cell_coords[0][0] : self.bottom_left_cell_coords[0][1], self.bottom_left_cell_coords[1][0]:self.bottom_left_cell_coords[1][1]]
+
+        self.top_center_cell_coords = np.array([[0,depthmap_cropped.shape[0]//3], [depthmap_cropped.shape[1]//3,2*depthmap_cropped.shape[1]//3]])
+        self.center_center_cell_coords = np.array([[depthmap_cropped.shape[0]//3,2*depthmap_cropped.shape[0]//3], [depthmap_cropped.shape[1]//3,2*depthmap_cropped.shape[1]//3]])
+        self.bottom_center_cell_coords = np.array([[2*depthmap_cropped.shape[0]//3, depthmap_cropped.shape[0]], [depthmap_cropped.shape[1]//3,2*depthmap_cropped.shape[1]//3]])
+
+        top_center   = depthmap_cropped[self.top_center_cell_coords[0][0] : self.top_center_cell_coords[0][1], self.top_center_cell_coords[1][0] : self.top_center_cell_coords[1][1]]
+        center_center = depthmap_cropped[self.center_center_cell_coords[0][0] : self.center_center_cell_coords[0][1], self.center_center_cell_coords[1][0] : self.center_center_cell_coords[1][1]]
+        bottom_center  = depthmap_cropped[self.bottom_center_cell_coords[0][0] : self.bottom_center_cell_coords[0][1], self.bottom_center_cell_coords[1][0] : self.bottom_center_cell_coords[1][1]]
+
+        self.top_right_cell_coords = np.array([[0,depthmap_cropped.shape[0]//3], [2*depthmap_cropped.shape[1]//3,depthmap_cropped.shape[1]]])
+        self.center_right_cell_coords = np.array([[depthmap_cropped.shape[0]//3,2*depthmap_cropped.shape[0]//3], [2*depthmap_cropped.shape[1]//3, depthmap_cropped.shape[1]]])
+        self.bottom_right_cell_coords = np.array([[2*depthmap_cropped.shape[0]//3, depthmap_cropped.shape[0]], [2*depthmap_cropped.shape[1]//3,depthmap_cropped.shape[1]]])
+        print(self.bottom_right_cell_coords)
+        top_right = depthmap_cropped[:depthmap_cropped.shape[0]//3, 2*depthmap_cropped.shape[1]//3:]
+        center_right = depthmap_cropped[depthmap_cropped.shape[0]//3:2*depthmap_cropped.shape[0]//3, 2*depthmap_cropped.shape[1]//3:]
+        bottom_right = depthmap_cropped[2*depthmap_cropped.shape[0]//3:, 2*depthmap_cropped.shape[1]//3:]
+
+        grid_np = [top_left, center_left, bottom_left, top_center, center_center, bottom_center, top_right, center_right, bottom_right]
+
+        grid_sum = []
+        for cell in grid_np:
+            cell = cell.flatten()
+            update_threads_size(cell)
+
+            # =========== select memory transfer mode ===========
+            if MODE == DeviceMode.GPU:
+                cell_sum = inference(cell)
+            elif MODE == DeviceMode.GPU_MAP:
+                cell_sum = inference_map_pinned_memory(cell)
+            elif MODE == DeviceMode.CPU:
+                cell_sum = inference_cpu(cell)
+
+            grid_sum.append(cell_sum)
+        print("[top_left, center_left, bottom_left, top_center, center_center, bottom_center, top_right, center_right, bottom_right]")
+        print(grid_sum)
+        print("*" * 40)
+        return grid_sum
 
 def run_ros():
     rclpy.init()
