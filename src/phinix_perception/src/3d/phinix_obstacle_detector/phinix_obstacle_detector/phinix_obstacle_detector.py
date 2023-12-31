@@ -13,9 +13,10 @@ from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 import cv2 
 
-RANGE = 500 #mm
+
+RANGE = 1.2 # feet
 SIDE_FOV_CROP_RATIO = 0.0
-NO_PTS_TO_BE_AN_OBSTACLE = 20
+NO_PTS_TO_BE_AN_OBSTACLE = 30
 
 KERNEL_TEXT = """
 __kernel void depthmap_sum_reduction(__global const float* depthmap, __local int* local_sum, __global int* group_sum, int N) 
@@ -93,7 +94,7 @@ GRID_MODE = GridMode.GRID
 TOPIC_NAME = "/phinix/depth/image_raw"
 TOPIC_PHINIX_DISPARITY_IMG = "/phinix/disparity/image_raw"
 TOPIC_DISP_VIS_IMG = "/phinix/vis/disparity"
-PUBLISH_TOPIC_NAME = "/phinix/obstacle_detector/detections"
+TOPIC_OBSTACLE_DETS = "/phinix/obstacle_detector/detections"
 # ====================== OpenCL ==========================
 # Depth map dimentions
 WIDTH = 1920
@@ -194,7 +195,9 @@ def inference_map_pinned_memory(depthmap_numpy):
 def inference_cpu(depthmap_numpy):
     print("CPU")
     t1 = time.time()
-    cpu_sum = ((depthmap_numpy < RANGE) & (depthmap_numpy != 0)).sum()
+    range_in_mm = int(RANGE*0.3048*1000) #feet*0.3048*mm
+    print("range is {} mm".format(range_in_mm))
+    cpu_sum = ((depthmap_numpy < range_in_mm) & (depthmap_numpy != 0)).sum()
     t2 = time.time()
     print("Result = ", "CPU = ", cpu_sum, " .. Time CPU = ", round((t2-t1) * 1000,4))
     return cpu_sum
@@ -210,7 +213,7 @@ class ObstacleDetectionNode(Node):
         super().__init__("depthmap")
         self.subscriber = self.create_subscription(Image, TOPIC_NAME, self.callback, 10)        
         self.disp_subscriber = self.create_subscription(Image, TOPIC_PHINIX_DISPARITY_IMG, self.disp_callback, 10)        
-        self.publisher = self.create_publisher(Int32MultiArray, PUBLISH_TOPIC_NAME, 10)
+        self.publisher = self.create_publisher(Int32MultiArray, TOPIC_OBSTACLE_DETS, 10)
         self.disp_vis_publisher_ = self.create_publisher(Image, TOPIC_DISP_VIS_IMG, 10)
         self.bridge = CvBridge()
         self.timer_period = 0.01  # seconds
@@ -268,9 +271,9 @@ class ObstacleDetectionNode(Node):
                 if obs_present == 1:
                     marker_x = int((cell[1][0] + cell[1][1])/2)
                     marker_y = int((cell[0][0] + cell[0][1])/2)
-                    cv2.drawMarker(self.disp_img, (marker_x, marker_y), color=[0, 0, 255], thickness=5, 
+                    cv2.drawMarker(self.disp_img, (marker_x, marker_y), color=[0, 0, 255], thickness=3, 
                                     markerType= cv2.MARKER_TILTED_CROSS, line_type=cv2.LINE_AA,
-                                    markerSize=10)
+                                    markerSize=15)
                     cv2.circle(self.disp_img, (marker_x, marker_y), radius=15, color=[255,0,255], thickness=2)
 
         msg = self.bridge.cv2_to_imgmsg(self.disp_img, "bgr8")
@@ -314,30 +317,48 @@ class ObstacleDetectionNode(Node):
         depthmap_cropped = depthmap_grid.copy()
         depthmap_cropped = depthmap_cropped[:, crop_fov_in_cols: depthmap_cropped.shape[1]-crop_fov_in_cols]
         # Split the grid into cells
+        # NOTE: the cells are processed and stored column wise 
+        # e.g for left column (top_left, center_left and bottom left) is the order
+        self.top_left_cell_coords = np.array([[0, depthmap_cropped.shape[0]//3],
+                                    [0, depthmap_cropped.shape[1]//3]])
+        self.center_left_cell_coords = np.array([[depthmap_cropped.shape[0]//3, 2*depthmap_cropped.shape[0]//3],
+                                    [0, depthmap_cropped.shape[1]//3]])
+        self.bottom_left_cell_coords= np.array([[2*depthmap_cropped.shape[0]//3, depthmap_cropped.shape[0]],
+                                    [0, depthmap_cropped.shape[1]//3]])
+        self.top_center_cell_coords = np.array([[0,depthmap_cropped.shape[0]//3],
+                                    [depthmap_cropped.shape[1]//3,2*depthmap_cropped.shape[1]//3]])
+        self.center_center_cell_coords = np.array([[depthmap_cropped.shape[0]//3,2*depthmap_cropped.shape[0]//3],
+                                    [depthmap_cropped.shape[1]//3,2*depthmap_cropped.shape[1]//3]])
+        self.bottom_center_cell_coords = np.array([[2*depthmap_cropped.shape[0]//3, depthmap_cropped.shape[0]],
+                                    [depthmap_cropped.shape[1]//3,2*depthmap_cropped.shape[1]//3]])
+        self.top_right_cell_coords = np.array([[0,depthmap_cropped.shape[0]//3],
+                                    [2*depthmap_cropped.shape[1]//3,depthmap_cropped.shape[1]]])
+        self.center_right_cell_coords = np.array([[depthmap_cropped.shape[0]//3,2*depthmap_cropped.shape[0]//3],
+                                    [2*depthmap_cropped.shape[1]//3, depthmap_cropped.shape[1]]])
+        self.bottom_right_cell_coords = np.array([[2*depthmap_cropped.shape[0]//3, depthmap_cropped.shape[0]],
+                                    [2*depthmap_cropped.shape[1]//3,depthmap_cropped.shape[1]]])
 
-        self.top_left_cell_coords = np.array([[0, depthmap_cropped.shape[0]//3], [0, depthmap_cropped.shape[1]//3]])
-        self.center_left_cell_coords = np.array([[depthmap_cropped.shape[0]//3, 2*depthmap_cropped.shape[0]//3], [0, depthmap_cropped.shape[1]//3]])
-        self.bottom_left_cell_coords= np.array([[2*depthmap_cropped.shape[0]//3, depthmap_cropped.shape[0]], [0, depthmap_cropped.shape[1]//3]])
+        top_left = depthmap_cropped[self.top_left_cell_coords[0][0] : self.top_left_cell_coords[0][1], 
+                                    self.top_left_cell_coords[1][0]:self.top_left_cell_coords[1][1]]
+        center_left = depthmap_cropped[self.center_left_cell_coords[0][0] : self.center_left_cell_coords[0][1],
+                                    self.center_left_cell_coords[1][0]:self.center_left_cell_coords[1][1]]
+        bottom_left = depthmap_cropped[self.bottom_left_cell_coords[0][0] : self.bottom_left_cell_coords[0][1],
+                                    self.bottom_left_cell_coords[1][0]:self.bottom_left_cell_coords[1][1]]
 
-        top_left = depthmap_cropped[self.top_left_cell_coords[0][0] : self.top_left_cell_coords[0][1], self.top_left_cell_coords[1][0]:self.top_left_cell_coords[1][1]]
-        center_left = depthmap_cropped[self.center_left_cell_coords[0][0] : self.center_left_cell_coords[0][1], self.center_left_cell_coords[1][0]:self.center_left_cell_coords[1][1]]
-        bottom_left = depthmap_cropped[self.bottom_left_cell_coords[0][0] : self.bottom_left_cell_coords[0][1], self.bottom_left_cell_coords[1][0]:self.bottom_left_cell_coords[1][1]]
 
-        self.top_center_cell_coords = np.array([[0,depthmap_cropped.shape[0]//3], [depthmap_cropped.shape[1]//3,2*depthmap_cropped.shape[1]//3]])
-        self.center_center_cell_coords = np.array([[depthmap_cropped.shape[0]//3,2*depthmap_cropped.shape[0]//3], [depthmap_cropped.shape[1]//3,2*depthmap_cropped.shape[1]//3]])
-        self.bottom_center_cell_coords = np.array([[2*depthmap_cropped.shape[0]//3, depthmap_cropped.shape[0]], [depthmap_cropped.shape[1]//3,2*depthmap_cropped.shape[1]//3]])
+        top_center   = depthmap_cropped[self.top_center_cell_coords[0][0] : self.top_center_cell_coords[0][1], 
+                                    self.top_center_cell_coords[1][0] : self.top_center_cell_coords[1][1]]
+        center_center = depthmap_cropped[self.center_center_cell_coords[0][0] : self.center_center_cell_coords[0][1],
+                                    self.center_center_cell_coords[1][0] : self.center_center_cell_coords[1][1]]
+        bottom_center  = depthmap_cropped[self.bottom_center_cell_coords[0][0] : self.bottom_center_cell_coords[0][1],
+                                    self.bottom_center_cell_coords[1][0] : self.bottom_center_cell_coords[1][1]]
 
-        top_center   = depthmap_cropped[self.top_center_cell_coords[0][0] : self.top_center_cell_coords[0][1], self.top_center_cell_coords[1][0] : self.top_center_cell_coords[1][1]]
-        center_center = depthmap_cropped[self.center_center_cell_coords[0][0] : self.center_center_cell_coords[0][1], self.center_center_cell_coords[1][0] : self.center_center_cell_coords[1][1]]
-        bottom_center  = depthmap_cropped[self.bottom_center_cell_coords[0][0] : self.bottom_center_cell_coords[0][1], self.bottom_center_cell_coords[1][0] : self.bottom_center_cell_coords[1][1]]
-
-        self.top_right_cell_coords = np.array([[0,depthmap_cropped.shape[0]//3], [2*depthmap_cropped.shape[1]//3,depthmap_cropped.shape[1]]])
-        self.center_right_cell_coords = np.array([[depthmap_cropped.shape[0]//3,2*depthmap_cropped.shape[0]//3], [2*depthmap_cropped.shape[1]//3, depthmap_cropped.shape[1]]])
-        self.bottom_right_cell_coords = np.array([[2*depthmap_cropped.shape[0]//3, depthmap_cropped.shape[0]], [2*depthmap_cropped.shape[1]//3,depthmap_cropped.shape[1]]])
-        print(self.bottom_right_cell_coords)
-        top_right = depthmap_cropped[:depthmap_cropped.shape[0]//3, 2*depthmap_cropped.shape[1]//3:]
-        center_right = depthmap_cropped[depthmap_cropped.shape[0]//3:2*depthmap_cropped.shape[0]//3, 2*depthmap_cropped.shape[1]//3:]
-        bottom_right = depthmap_cropped[2*depthmap_cropped.shape[0]//3:, 2*depthmap_cropped.shape[1]//3:]
+        top_right = depthmap_cropped[self.top_right_cell_coords[0][0] : self.top_right_cell_coords[0][1], 
+                                    self.top_right_cell_coords[1][0] : self.top_right_cell_coords[1][1]]
+        center_right = depthmap_cropped[self.center_right_cell_coords[0][0] : self.center_right_cell_coords[0][1], 
+                                    self.center_right_cell_coords[1][0] : self.center_right_cell_coords[1][1]]
+        bottom_right = depthmap_cropped[self.bottom_right_cell_coords[0][0] : self.bottom_right_cell_coords[0][1], 
+                                    self.bottom_right_cell_coords[1][0] : self.bottom_right_cell_coords[1][1]]
 
         grid_np = [top_left, center_left, bottom_left, top_center, center_center, bottom_center, top_right, center_right, bottom_right]
 
