@@ -3,7 +3,7 @@ The main repository for PHINIX. The current setup is developed and tested on Ubu
 
 ## Local machine setup
 
-* Follow [this doc](docs/README_setup_local.md) to setup fully then proceed to next steps.
+* Follow [this doc](docs/setup_local.md) to setup fully then proceed to next steps.
 
 ## Setup code and running:
 
