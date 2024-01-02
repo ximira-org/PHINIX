@@ -132,5 +132,6 @@ RUN cd /home/PHINIX/src/external && cmake -S depthai-python/depthai-core -B /bui
 RUN cmake --build /build --parallel 4 --config Relase --target install
 RUN cd /home/PHINIX/src/external/depthai-python && python3 -m pip install .
 RUN python3 -m pip install blobconverter
-RUN apt install pocl-opencl-icd
+RUN apt install pocl-opencl-icd -y
+# RUN python3 -m pip install ultralytics==8.0.231
 WORKDIR /home/PHINIX
