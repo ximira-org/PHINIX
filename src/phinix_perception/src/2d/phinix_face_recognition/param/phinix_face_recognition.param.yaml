@@ -1,0 +1,4 @@
+/**:
+  ros__parameters:
+    reg_dir: "/home/PHINIX/src/phinix_perception/src/2d/reg" 
+    database_dir: "/home/PHINIX/src/phinix_perception/src/2d/database" 

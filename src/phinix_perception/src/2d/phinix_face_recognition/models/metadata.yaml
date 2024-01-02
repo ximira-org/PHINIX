@@ -1,0 +1,13 @@
+description: Ultralytics YOLOv8n-face model trained on datasets/data.yaml
+author: Ultralytics
+license: AGPL-3.0 https://ultralytics.com/license
+date: '2023-12-30T18:48:58.648706'
+version: 8.0.231
+stride: 32
+task: detect
+batch: 1
+imgsz:
+- 640
+- 640
+names:
+  0: face
