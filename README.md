@@ -36,6 +36,8 @@ The main repository for PHINIX. The current setup is developed and tested on Ubu
 * `cd ~/PHINIX`
 
 ### Clone sub repositories
+Install pip for Python 3: `sudo apt-get install python3-pip`
+
 Install vcs tool: `sudo pip install vcstool`
 
 setup the required code
@@ -44,6 +46,11 @@ setup the required code
 
 ### build docker image
 
+Recentely switched to using a custom Python implementation of DepthAI. Delete the old Ros2 implementation located in: `/PHINIX/src/external` Leaving the `depthai-python` folder
+
+
+
+Build the Docker File
 * `docker build -f utilities/docker/Dockerfile --build-arg USE_RVIZ=1 -t phinix_openvino_ros2 .`
 
 ### run docker 
