@@ -44,10 +44,12 @@ setup the required code
 
 * `sh setup_code.sh`
 
+### Install Docker
+Follow [steps to install Docker for Ubuntu 20.04](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-20-04)
+
 ### build docker image
 
 Recentely switched to using a custom Python implementation of DepthAI. Delete the old Ros2 implementation located in: `/PHINIX/src/external` Leaving the `depthai-python` folder
-
 
 
 Build the Docker File
@@ -90,7 +92,6 @@ Open new terminal (for rviz2)
 * `source install/setup.bash`
 
 * `rviz2` # add the necessary topics for visualization
-
 
 ## Below steps are for launching nodes invidually. The below steps are not needed if `phinix.launch.py` (above) is launched.
 
