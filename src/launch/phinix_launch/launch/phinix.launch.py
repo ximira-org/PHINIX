@@ -20,6 +20,15 @@ def generate_launch_description():
         description='tts settings'
     )
     
+    face_rec_pkg_prefix = get_package_share_directory('phinix_face_recognition')
+    face_rec_node_param_file = os.path.join(
+        face_rec_pkg_prefix, 'param/phinix_face_recognition.param.yaml')
+    face_rec__param = DeclareLaunchArgument(
+        'face_rec_node_param_file',
+        default_value=face_rec_node_param_file,
+        description='face recognition settings'
+    )
+
     oak_ros_node = Node(
         package="oak_ros",
         executable="oak_ros_py_exe"
@@ -51,14 +60,22 @@ def generate_launch_description():
         parameters=[LaunchConfiguration('tts_balacoon_node_param_file')],
     )
 
+    phinix_face_rec_node = Node(
+        package="phinix_face_recognition",
+        executable="phinix_face_rec_py_exe",
+        parameters=[LaunchConfiguration('face_rec_node_param_file')],
+    )
+
     ld = [
         oak_ros_node,
         phinix_obstacle_detector_node,
         tts_balacoon_param,
+        face_rec__param,
         phinix_text_detector_node,
-        phinix_tts_simulator_node,
+        # phinix_tts_simulator_node,
         phinix_tts_balacoon_node,
-        phinix_sensor_abstractor_node
+        phinix_sensor_abstractor_node,
+        phinix_face_rec_node
     ]
 
     return LaunchDescription(ld)
