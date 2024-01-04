@@ -1,5 +1,5 @@
 ARG ROS_DISTRO=foxy
-FROM openvino/ubuntu20_dev:2022.3.0
+FROM openvino/ubuntu20_dev:2023.2.0
 ARG USE_RVIZ
 ARG BUILD_SEQUENTIAL=0
 ARG OPENCV_VERSION=4.7.0
@@ -133,5 +133,6 @@ RUN cmake --build /build --parallel 4 --config Relase --target install
 RUN cd /home/PHINIX/src/external/depthai-python && python3 -m pip install .
 RUN python3 -m pip install blobconverter
 RUN apt install pocl-opencl-icd -y
+RUN python3 -m pip install rapidocr_openvino
 # RUN python3 -m pip install ultralytics==8.0.231
 WORKDIR /home/PHINIX
