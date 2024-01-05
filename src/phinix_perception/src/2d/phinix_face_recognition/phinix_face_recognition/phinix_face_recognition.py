@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 import yaml
 from typing import Tuple, Dict
+from std_msgs.msg import String
 
 import rclpy
 from rclpy.qos import ReliabilityPolicy, QoSProfile
@@ -34,6 +35,11 @@ from ultralytics.utils.plotting import colors
 VIS = True
 TOPIC_PHINIX_RAW_IMG = "/phinix/rgb/image_raw"
 TOPIC_VIS_IMG = "/phinix/vis/face_rec"
+
+TOPIC_WAKEWORD = "/phinix/wakeword"
+TOPIC_DUMMY_TEXTS = "/phinix/tts_simulator/dummy_texts"
+#Amount of time to look for IDs in seconds
+TOPIC_ID_TIME = 1
 
 
 def draw_anno(img,box,label,color,thickness):
@@ -104,6 +110,20 @@ class PHINIXFaceRecognizer(Node):
         self.det_compiled_model = self.core.compile_model(self.det_ov_model, self.ov_device)
         model = YOLO(self.det_model_path.replace(".xml", ".pt"))
         self.label_map = model.model.names
+
+        #listen for wakeword for facial recognition
+        self.wakeword_sub = self.create_subscription(
+            String, 
+            TOPIC_WAKEWORD, 
+            self.wakeword_callback, 
+            QoSProfile(depth=1, reliability=ReliabilityPolicy.BEST_EFFORT))
+        #faces seen in current round of facial recognition
+        self.faces_seen = []
+        #currently identifying faces on command
+        self.activelyIdentifying = False
+        #Publish names I have seen over tts
+        self.name_publisher = self.create_publisher(String, TOPIC_DUMMY_TEXTS, 10)
+
         if self.quantized:
             #Loading the quantized model
             self.ie = Core()
@@ -112,6 +132,24 @@ class PHINIXFaceRecognizer(Node):
             self.iden_model=identification_base()
             self.iden_model.load_state_dict(torch.load(os.path.join(model_dir, "idenr.pt")))
             self.iden_model.eval()
+
+    #When we get the word to identify people,id them for some amount of seconds
+    def wakeword_callback(self, msg):
+        if msg.data == "identify_people":
+            self.id_timer = self.create_timer(TOPIC_ID_TIME, self.identification_round_complete_callback)
+            self.activelyIdentifying = True
+            self.faces_seen = []
+            self.get_logger().info("Face Recognition: Begin identifying people")
+    
+    def identification_round_complete_callback(self):
+        self.get_logger().info("Face Recognition: Done identifying people")
+        self.activelyIdentifying = False
+        self.id_timer.destroy()
+        for name in self.faces_seen:
+            self.get_logger().info("I Identified " + str(name))
+            msg = String()
+            msg.data = name
+            self.name_publisher.publish(msg)
 
     @torch.no_grad()
     def get_features(self, faces,q=True): ###
@@ -352,6 +390,9 @@ class PHINIXFaceRecognizer(Node):
         return detections
 
     def listener_callback(self, msg):
+        if self.activelyIdentifying == False:
+            return
+        
         img = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
         galley_data=[]
         galley_names=[]
@@ -388,6 +429,8 @@ class PHINIXFaceRecognizer(Node):
                 person_name,person_color=pres
                 person_color=(int(person_color[0]),int(person_color[1]),int(person_color[2]))
                 draw_anno(img,box,person_name,person_color,thickness)
+                if (person_name in self.faces_seen) == False:
+                    self.faces_seen.append(person_name)
         end_time = time.time()
         print("time taken per frame = {}".format(end_time-st_time))
         msg = self.bridge.cv2_to_imgmsg(img, "bgr8")
