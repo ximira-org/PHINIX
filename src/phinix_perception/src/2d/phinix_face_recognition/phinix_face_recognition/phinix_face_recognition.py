@@ -141,14 +141,16 @@ class PHINIXFaceRecognizer(Node):
             self.faces_seen = []
             self.get_logger().info("Face Recognition: Begin identifying people")
     
+    #When we have finished identifying people, send their names to tts
     def identification_round_complete_callback(self):
         self.get_logger().info("Face Recognition: Done identifying people")
         self.activelyIdentifying = False
         self.id_timer.destroy()
         for name in self.faces_seen:
-            self.get_logger().info("I Identified " + str(name))
+            data = "Identified " + str(name)
+            self.get_logger().info(data)
             msg = String()
-            msg.data = name
+            msg.data = data
             self.name_publisher.publish(msg)
 
     @torch.no_grad()
