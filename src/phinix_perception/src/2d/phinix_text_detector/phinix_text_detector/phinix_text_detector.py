@@ -18,7 +18,7 @@ TOPIC_VIS_IMG = "/phinix/vis_image"
 TOPIC_WAKEWORD = "/phinix/wakeword"
 TOPIC_DUMMY_TEXTS = "/phinix/tts_simulator/dummy_texts"
 #Number of seconds to read to user when told to start reading
-READING_TIME = 10
+READING_TIME = 30
 
 class PHINIXTextDetector(Node):
 
@@ -51,16 +51,18 @@ class PHINIXTextDetector(Node):
     #When we get the word to identify people,id them for some amount of seconds
     def wakeword_callback(self, msg):
         if msg.data == "read_to_me":
-            self.reading_timer = self.create_timer(READING_TIME, self.reading_complete_callback)
+            self.reading_timer = self.create_timer(READING_TIME, self.stop_reading)
             self.actively_reading_text = True
             self.text_read = []
             self.get_logger().info("Text Detector: Begin reading")
-
-    #When the reading time has expired, stop reading
-    def reading_complete_callback(self):
+        elif msg.data == "stop_reading":
+            self.stop_reading()
+    
+    def stop_reading(self):
         self.get_logger().info("Text Detector: Stop reading")
-        self.actively_reading_text = False
-        self.reading_timer.destroy()
+        if self.actively_reading_text:
+            self.actively_reading_text = False
+            self.reading_timer.destroy()
 
     def draw_and_publish(self, img, boxes, txts, scores=None, text_score=0.5):
         
