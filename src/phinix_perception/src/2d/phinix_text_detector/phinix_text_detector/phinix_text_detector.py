@@ -4,7 +4,9 @@ import rclpy
 from rclpy.qos import ReliabilityPolicy, QoSProfile
 from rclpy.node import Node
 from sensor_msgs.msg import Image
+from std_msgs.msg import String
 from cv_bridge import CvBridge
+import time
 
 import cv2
 import numpy as np
@@ -13,6 +15,10 @@ import rapidocr_openvino as rog
 VIS = True
 TOPIC_PHINIX_RAW_IMG = "/phinix/rgb/image_raw"
 TOPIC_VIS_IMG = "/phinix/vis_image"
+TOPIC_WAKEWORD = "/phinix/wakeword"
+TOPIC_DUMMY_TEXTS = "/phinix/tts_simulator/dummy_texts"
+#Number of seconds to read to user when told to start reading
+READING_TIME = 10
 
 class PHINIXTextDetector(Node):
 
@@ -28,6 +34,33 @@ class PHINIXTextDetector(Node):
         self.result = None
         self.elapse_list = None
         self.bridge = CvBridge()
+
+        #Publish text I have read over tts
+        self.tts_publisher = self.create_publisher(String, TOPIC_DUMMY_TEXTS, 10)
+        #is the text detector actively reading text
+        self.actively_reading_text = False
+        #Text I have seen in this session
+        self.text_read = []
+        #listen for wakeword
+        self.wakeword_sub = self.create_subscription(
+            String, 
+            TOPIC_WAKEWORD, 
+            self.wakeword_callback, 
+            QoSProfile(depth=1, reliability=ReliabilityPolicy.BEST_EFFORT))
+    
+    #When we get the word to identify people,id them for some amount of seconds
+    def wakeword_callback(self, msg):
+        if msg.data == "read_to_me":
+            self.reading_timer = self.create_timer(READING_TIME, self.reading_complete_callback)
+            self.actively_reading_text = True
+            self.text_read = []
+            self.get_logger().info("Text Detector: Begin reading")
+
+    #When the reading time has expired, stop reading
+    def reading_complete_callback(self):
+        self.get_logger().info("Text Detector: Stop reading")
+        self.actively_reading_text = False
+        self.reading_timer.destroy()
 
     def draw_and_publish(self, img, boxes, txts, scores=None, text_score=0.5):
         
@@ -53,14 +86,27 @@ class PHINIXTextDetector(Node):
         self.vis_publisher_.publish(msg)
 
     def listener_callback(self, msg):
+        if self.actively_reading_text == False:
+            return
+        
         im_rgb = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
         result, elapse_list = self.rapid_ocr(im_rgb)
         boxes = txts = scores = None
         if VIS: 
             if result is not None:
                 print(result)
+                #self.get_logger().info(str(result))
                 print(elapse_list)
                 boxes, txts, scores = list(zip(*result))
+                for txt in txts:
+                    if txt not in self.text_read:
+                        self.text_read.append(txt)
+                        data = str(txt)
+                        self.get_logger().info(data)
+                        msg = String()
+                        msg.data = data
+                        self.tts_publisher.publish(msg)
+                        break
             np_img = np.array(im_rgb, dtype="uint8")
             self.draw_and_publish(np_img, boxes, txts, scores)
 
