@@ -21,8 +21,7 @@ VIS = True
 TOPIC_PHINIX_RAW_IMG = "/oak/rgb/image_raw"
 TOPIC_PHINIX_DEPTH_IMG = "/oak/depth/image_raw"
 TOPIC_PHINIX_DISPARITY_IMG = "/oak/disparity/image_raw"
-TOPIC_PHINIX_PREVIEW_IMG = "/oak/preview/image_raw"
-TOPIC_VIS_IMG = "/phinix/vis_image"
+TOPIC_PHINIX_PREVIEW_IMG = "/phinix/vis/object_det"
 
 RES_MAP = {
     '800': {'w': 1280, 'h': 800, 'res': dai.MonoCameraProperties.SensorResolution.THE_800_P },
@@ -238,7 +237,7 @@ class OAKLaunch(Node):
                     frame = inRgb.getCvFrame()
                     cv2.putText(frame, "NN fps: {:.2f}".format(counter / (time.monotonic() - startTime)),
                                 (2, frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4, color2)
-                    # self.displayFrame("rgb", frame, detections)
+                    frame = self.displayFrame("rgb", frame, detections)
                     # print("preview shape = ", frame.shape)
                     ros_preview = self.bridge.cv2_to_imgmsg(frame, "bgr8")
                     self.preview_publisher_.publish(ros_preview)
@@ -249,15 +248,12 @@ class OAKLaunch(Node):
                 
                 if inFrame is not None:
                     full_frame = inFrame.getCvFrame()
-                    # self.displayFrame("full frame", full_frame, [])
-                    # print("raw frame size = ", full_frame.shape)
                     ros_full_Frame = self.bridge.cv2_to_imgmsg(full_frame, "bgr8")
                     self.rgb_publisher_.publish(ros_full_Frame)
 
 
                 if inDisparity is not None:
                     dis_frame = inDisparity.getCvFrame()
-                    # print("disparity shape = ", dis_frame.shape)
                     maxDisp = self.stereo.initialConfig.getMaxDisparity()
                     # Normalization for better visualization
                     dis_frame = (dis_frame * (255 / maxDisp)).astype(np.uint8)
@@ -266,18 +262,13 @@ class OAKLaunch(Node):
                     dis_frame = cv2.applyColorMap(dis_frame, cv2.COLORMAP_JET)
                     ros_disparity = self.bridge.cv2_to_imgmsg(dis_frame, "bgr8")
                     self.disparity_publisher_.publish(ros_disparity)
-                    # cv2.imshow("disparity_color", dis_frame)
 
                 if inDepth is not None:
                     dep_frame = inDepth.getFrame()
                     dep_frame = dep_frame.astype(np.uint16)
                     ros_depth = self.bridge.cv2_to_imgmsg(dep_frame, "16UC1")
                     self.depth_publisher_.publish(ros_depth)
-                    # cv2.imshow("depth", dep_frame)
 
-                # if cv2.waitKey(1) == ord('q'):
-                    # cv2.destroyAllWindows()
-                    # break
     # nn data, being the bounding box locations, are in <0..1> range - they need to be normalized with frame width/height
     def frameNorm(self, frame, bbox):
         normVals = np.full(len(bbox), frame.shape[0])
@@ -291,8 +282,7 @@ class OAKLaunch(Node):
             cv2.putText(frame, self.labels[detection.label], (bbox[0] + 10, bbox[1] + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
             cv2.putText(frame, f"{int(detection.confidence * 100)}%", (bbox[0] + 10, bbox[1] + 40), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
             cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
-        # Show the frame
-        cv2.imshow(name, frame)
+        return frame
 
     def listener_callback(self, msg):
         im_rgb = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
