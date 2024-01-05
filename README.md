@@ -5,11 +5,11 @@
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
 PHINIX (Perceptive Helper with Intelligent Navigation and Intuitive eXperience)
-is a wearable system that allows people who are blind to walk safely and freely.
-PHINIX uses AI cameras to visualize the environment in three dimensions, analyze
-the scene using Artificial Intelligence (AI), and communicate with the user using
-audio and/or haptic feedback. To learn more about PHINIX, please visit
-[Ximira's Product page](https://ximira.org/product).
+is a wearable system that helps people who are visually impaired or blind in
+perceiving their surroundings. PHINIX uses AI cameras to visualize the environment
+in three dimensions, analyze the scene using Artificial Intelligence (AI), and
+communicate with the user using audio and/or haptic feedback. To learn more about
+PHINIX, please visit [Ximira's Product page](https://ximira.org/product).
 
 PHINIX is developed by Ximira, a not-for-profit organization with a mission to
 develop an innovative, wearable system that gives blind users more freedom to
@@ -20,14 +20,14 @@ visit [Ximira's About Us page](https://ximira.org/about).
 
 Here are some useful resources to get started with PHINIX:
 
+* To set up a local machine to run PHINIX inside Docker, see
+  [Setting up PHINIX locally for development](docs/setup_local.md).
+
 * To set up code and run PHINIX using Docker, see our guide on
   [Setting up PHINIX using Docker](docs/setup_with_docker.md).
 
-* To run PHINIX without Docker, see
-  [Setting up PHINIX without Docker](docs/setup_without_docker.md).
-
-* To set up and run PHINIX locally, see
-  [Setting up PHINIX locally for development](docs/setup_local.md).
+* To learn more about the hardware PHINIX requires, see
+  [Hardware Requirements for PHINIX](docs/hardware_requirements.md).
 
 * To learn more about our organization and product, we recommend you
   check out [our official website](https://ximira.org/).
