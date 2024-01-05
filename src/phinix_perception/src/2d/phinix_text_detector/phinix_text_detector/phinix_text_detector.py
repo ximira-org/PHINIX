@@ -8,7 +8,7 @@ from cv_bridge import CvBridge
 
 import cv2
 import numpy as np
-import rapidocr_openvinogpu as rog
+import rapidocr_openvino as rog
 
 VIS = True
 TOPIC_PHINIX_RAW_IMG = "/phinix/rgb/image_raw"
