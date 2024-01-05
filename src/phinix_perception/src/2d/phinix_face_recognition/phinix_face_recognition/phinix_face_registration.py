@@ -101,9 +101,12 @@ class PHINIXFaceRegistrer(Node):
         self.det_model_path = os.path.join(model_dir, 'yolov8n-face.xml')
         self.core = Core()
         self.det_ov_model = self.core.read_model(self.det_model_path)
-        self.ov_device = "GPU"
-        if self.ov_device != "CPU":
-            self.det_ov_model.reshape({0: [1, 3, 640, 640]})
+        self.ov_device = "CPU"
+        
+        self.det_ov_model.reshape({0: [1, 3, 640, 640]})
+        #if self.ov_device != "CPU":
+        #    self.det_ov_model.reshape({0: [1, 3, 640, 640]})
+        
         self.det_compiled_model = self.core.compile_model(self.det_ov_model, self.ov_device)
         model = YOLO(self.det_model_path.replace(".xml", ".pt"))
         self.label_map = model.model.names
