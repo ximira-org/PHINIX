@@ -120,9 +120,9 @@ class PHINIXFaceRecognizer(Node):
         #faces seen in current round of facial recognition
         self.faces_seen = []
         #currently identifying faces on command
-        self.activelyIdentifying = False
+        self.actively_identifying = False
         #Publish names I have seen over tts
-        self.name_publisher = self.create_publisher(String, TOPIC_DUMMY_TEXTS, 10)
+        self.tts_publisher = self.create_publisher(String, TOPIC_DUMMY_TEXTS, 10)
 
         if self.quantized:
             #Loading the quantized model
@@ -137,21 +137,21 @@ class PHINIXFaceRecognizer(Node):
     def wakeword_callback(self, msg):
         if msg.data == "identify_people":
             self.id_timer = self.create_timer(TOPIC_ID_TIME, self.identification_round_complete_callback)
-            self.activelyIdentifying = True
+            self.actively_identifying = True
             self.faces_seen = []
             self.get_logger().info("Face Recognition: Begin identifying people")
     
     #When we have finished identifying people, send their names to tts
     def identification_round_complete_callback(self):
         self.get_logger().info("Face Recognition: Done identifying people")
-        self.activelyIdentifying = False
+        self.actively_identifying = False
         self.id_timer.destroy()
         for name in self.faces_seen:
             data = "Identified " + str(name)
             self.get_logger().info(data)
             msg = String()
             msg.data = data
-            self.name_publisher.publish(msg)
+            self.tts_publisher.publish(msg)
 
     @torch.no_grad()
     def get_features(self, faces,q=True): ###
@@ -392,7 +392,7 @@ class PHINIXFaceRecognizer(Node):
         return detections
 
     def listener_callback(self, msg):
-        if self.activelyIdentifying == False:
+        if self.actively_identifying == False:
             return
         
         img = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
