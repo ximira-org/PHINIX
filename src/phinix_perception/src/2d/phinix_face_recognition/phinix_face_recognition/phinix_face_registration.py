@@ -42,6 +42,8 @@ NUM_PIXELS_LEFT_OF_FACE = 30 # pixels
 NAME_READING_PERIOD = 10 # seconds
 RECORDING_TIME = 30 # seconds
 
+TOPIC_WAKEWORD = "/phinix/wakeword"
+
 
 class identification_base(nn.Module): ###
 
@@ -118,6 +120,21 @@ class PHINIXFaceRegistrer(Node):
             self.iden_model=identification_base()
             self.iden_model.load_state_dict(torch.load(os.path.join(model_dir, "idenr.pt")))
             self.iden_model.eval()
+        
+        #am I currently adding a new face
+        self.actively_adding_face = False
+        #Listen for the add a new face wakeword
+        self.wakeword_sub = self.create_subscription(
+            String, 
+            TOPIC_WAKEWORD, 
+            self.wakeword_callback, 
+            QoSProfile(depth=1, reliability=ReliabilityPolicy.BEST_EFFORT))
+
+    #When we get the word to add a new face, begin the regestration process
+    def wakeword_callback(self, msg):
+        if msg.data == "add_a_new_face" and self.actively_adding_face == False:
+            self.actively_adding_face = True
+            self.get_logger().info("Face regestration: Add a new face")
 
     @torch.no_grad()
     def get_features(self, faces,q=True): ###
@@ -363,6 +380,8 @@ class PHINIXFaceRegistrer(Node):
         return detections
         
     def listener_callback(self, msg):
+        if self.actively_adding_face == False:
+            return
         if self.reg_complete:
             print("skipping as registration is complete")
             return
@@ -465,6 +484,7 @@ class PHINIXFaceRegistrer(Node):
             msg.data = pub_string
             self.text_publisher.publish(msg)
             self.reg_complete = True
+            self.actively_adding_face = False
         vis_img = self.draw_results(detections, img.copy(), self.label_map)
         msg = self.bridge.cv2_to_imgmsg(vis_img, "bgr8")
         self.vis_publisher_.publish(msg)
