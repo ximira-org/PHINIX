@@ -1,163 +1,68 @@
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](code_of_conduct.md)
+[![Ximira banner](./.github/assets/ximira-banner.png)](https://ximira.org/)
 
 # PHINIX
-The main repository for PHINIX. The current setup is developed and tested on Ubuntu 20.04 with ROS2 Foxy.
 
-## Setup code and running:
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
-### Install Ubuntu
-* Download Ubuntu 20.04 from [here](https://releases.ubuntu.com/focal/)
+PHINIX (Perceptive Helper with Intelligent Navigation and Intuitive eXperience)
+is a wearable system that helps people who are visually impaired or blind in
+perceiving their surroundings. PHINIX uses AI cameras to visualize the environment
+in three dimensions, analyze the scene using Artificial Intelligence (AI), and
+communicate with the user using audio and/or haptic feedback. To learn more about
+PHINIX, please visit [Ximira's Product page](https://ximira.org/product).
 
-* Installation: follow the instructions from [here](https://ubuntu.com/tutorials/install-ubuntu-desktop#1-overview).
+PHINIX is developed by Ximira, a not-for-profit organization with a mission to
+develop an innovative, wearable system that gives blind users more freedom to
+participate in all aspects of society. To learn more about our story, please
+visit [Ximira's About Us page](https://ximira.org/about).
 
-### Install ROS2 Foxy
-* Install ROS2 Foxy using the binary version. Follow [this](https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html).
+## Getting started
 
-* Include `source /opt/ros/foxy/setup.bash` in bashrc.
+Here are some useful resources to get started with PHINIX:
 
-* Make sure ROS2 installed correctly by running the talker listener examples explained in the above link.
+* To set up a local machine to run PHINIX inside Docker, see
+  [Setting up PHINIX locally for development](docs/setup_local.md).
 
-* Install colcon for ROS2, follow [here](https://colcon.readthedocs.io/en/released/user/installation.html).
+* To set up code and run PHINIX using Docker, see our guide on
+  [Setting up PHINIX using Docker](docs/setup_with_docker.md).
 
-### Install vim and git
-* `sudo apt-get install vim git -y`
+* To learn more about the hardware PHINIX requires, see
+  [Hardware Requirements for PHINIX](docs/hardware_requirements.md).
 
-### Setup git
-* Follow [this](https://docs.github.com/en/get-started/getting-started-with-git/setting-your-username-in-git) and [this](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-email-preferences/setting-your-commit-email-address) to setup git configs. 
+* To learn more about our organization and product, we recommend you
+  check out [our official website](https://ximira.org/).
 
-* Set up SSH key using [this](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent).
+## Documentation
 
-### Clone the repo
+All of our documentation lives inside the
+[`/docs`](https://github.com/ximira-org/PHINIX/tree/main/docs) directory in this
+repository. If there is anything that is missing in our documentation,
+please let us know by
+[creating an issue](https://github.com/ximira-org/PHINIX/issues/new).
 
-* `cd ~`
+## Contribute
 
-* `git clone git@github.com:ximira-org/PHINIX.git` 
+We invite you to contribute and help improve PHINIX 💚
 
-* `cd ~/PHINIX`
+Here are a few ways you can get involved:
 
-### Clone sub repositories
-Install pip for Python 3: `sudo apt-get install python3-pip`
+- **Reporting Bugs:** If you come across any bugs or issues, please
+  [create an issue](https://github.com/ximira-org/PHINIX/issues/new) and follow
+  the default issue template.
 
-Install vcs tool: `sudo pip install vcstool`
+- **Suggestions:** Have ideas or improvements that you think would make PHINIX better?
+  We'd love to hear from you! Check out our [contribution guide](CONTRIBUTING.md) to
+  learn how to contribute to our community and codebase.
 
-setup the required code
+- **Questions:** If you have questions or need to get in touch with our team, you can
+  contact us at info@ximira.org.
 
-* `sh setup_code.sh`
+## Follow us
 
-### build docker image
+<p valign="center">
+  <a href="https://www.facebook.com/Ximira-LLC-106627175132440"><img width="20px" src="./.github/assets/facebook.svg" alt="Facebook"></a>&nbsp;&nbsp;<a href="https://twitter.com/XimiraLLC"><img width="20px" src="./.github/assets/twitter.svg" alt="Twitter"></a>&nbsp;&nbsp;<a href="https://www.instagram.com/ximirallc/"><img width="20px" src="./.github/assets/instagram.svg" alt="Instagram"></a>
+</p>
 
-Recentely switched to using a custom Python implementation of DepthAI. Delete the old Ros2 implementation located in: `/PHINIX/src/external` Leaving the `depthai-python` folder
+## License
 
-
-
-Build the Docker File
-* `docker build -f utilities/docker/Dockerfile --build-arg USE_RVIZ=1 -t phinix_openvino_ros2 .`
-
-### run docker 
-
-In the below command replace <username> with your system user name
-
-* `docker run --name phinix_container -it -v /dev/:/dev/ -v /home/<username>/PHINIX:/home/PHINIX -v /tmp/.X11-unix:/tmp/.X11-unix --privileged -e DISPLAY phinix_openvino_ros2`
-
-If PHINIX repo is downloaded to different location, replace `/home/<username>/PHINIX` with the correct path in the above command
-
-### build all the ROS modules
-
-* `cd /home/PHINIX`
-
-* In file `~/PHINIX/src/external/depthai-ros/depthai_filters/CMakeLists.txt` edit line 7 from `set(opencv_version 4)` to `set(opencv_version 4.7.0)`
-
-* `source /opt/ros/foxy/setup.bash`
-
-* `./src/external/depthai-ros/build.sh -s $BUILD_SEQUENTIAL -r 1 -m 1`
-
-* `colcon build`
-
-* `source install/setup.bash`
-
-### Launch all nodes at once via launch file
-
-* `ros2 launch phinix_launch phinix.launch.py camera_model:=OAK-D-PRO-W`
-
-### Launch RViZ for visualization
-
-Open new terminal (for rviz2)
-
-* `xhost +local:docker`
-
-* `docker exec -it phinix_container bash`
-
-* `source install/setup.bash`
-
-* `rviz2` # add the necessary topics for visualization
-
-
-## Below steps are for launching nodes invidually. The below steps are not needed if `phinix.launch.py` (above) is launched.
-
-### Launch camera node
-
-* `cd /home/PHINIX`
-
-* `source install/setup.bash`
-
-* `ros2 launch depthai_ros_driver camera.launch.py camera_model:=OAK-D-PRO-W`
-
-### Launch sensor abstractor
-Open new terminal:
-
-* `docker exec -it phinix_container bash`
-
-* `cd /home/PHINIX`
-
-* `colcon build --packages-select phinix_sensor_abstractor` # optional, colcon build builds automatically
-
-* `source install/setup.bash`
-
-* `ros2 run phinix_sensor_abstractor phinix_sensor_abstractor_py_exe`
-
-### Launch text detector (Note: works only with Intel GPU)
-Open new terminal:
-
-* `docker exec -it phinix_container bash`
-
-* `cd /home/PHINIX`
-
-* `colcon build --packages-select phinix_text_detector`# optional
-
-* `source install/setup.bash`
-
-* `ros2 run phinix_text_detector phinix_text_detector_py_exe`
-
-### Launch TTS
-Open new terminal (for TTS simulator):
-
-* `docker exec -it phinix_container bash`
-
-* `cd /home/PHINIX`
-
-* `source install/setup.bash`
-
-* `ros2 run phinix_tts_balacoon phinix_tts_simulator_py_exe`  # if simulator is needed
-
-Open new terminal (for TTS node):
-
-* `docker exec -it phinix_container bash`
-
-* `cd /home/PHINIX`
-
-* `source install/setup.bash`
-
-* `ros2 run phinix_tts_balacoon phinix_tts_balacoon_py_exe --ros-args --params-file src/phinix_ui/phinix_tts_balacoon/param/phinix_tts_balacoon.param.yaml`
-
-### Launch RViZ for visualization
-
-Open new terminal (for rviz2)
-
-* `xhost +local:docker`
-
-* `docker exec -it phinix_container bash`
-
-* `source install/setup.bash`
-
-* `rviz2` # add the necessary topics for visualization
-
+TBD
