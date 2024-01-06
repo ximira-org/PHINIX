@@ -39,7 +39,7 @@ TOPIC_VIS_IMG = "/phinix/vis/face_rec"
 TOPIC_WAKEWORD = "/phinix/wakeword"
 TOPIC_DUMMY_TEXTS = "/phinix/tts_simulator/dummy_texts"
 #Amount of time to look for IDs in seconds
-TOPIC_ID_TIME = 1
+TOPIC_ID_TIME = 20
 
 
 def draw_anno(img,box,label,color,thickness):
@@ -136,22 +136,19 @@ class PHINIXFaceRecognizer(Node):
     #When we get the word to identify people,id them for some amount of seconds
     def wakeword_callback(self, msg):
         if msg.data == "identify_people":
-            self.id_timer = self.create_timer(TOPIC_ID_TIME, self.identification_round_complete_callback)
+            self.id_timer = self.create_timer(TOPIC_ID_TIME, self.stop_identifying_people)
             self.actively_identifying = True
             self.faces_seen = []
             self.get_logger().info("Face Recognition: Begin identifying people")
+        elif msg.data == "stop_identifying":
+            self.stop_identifying_people()
     
     #When we have finished identifying people, send their names to tts
-    def identification_round_complete_callback(self):
-        self.get_logger().info("Face Recognition: Done identifying people")
-        self.actively_identifying = False
-        self.id_timer.destroy()
-        for name in self.faces_seen:
-            data = "Identified " + str(name)
-            self.get_logger().info(data)
-            msg = String()
-            msg.data = data
-            self.tts_publisher.publish(msg)
+    def stop_identifying_people(self):
+        if self.actively_identifying:
+            self.get_logger().info("Face Recognition: Done identifying people")
+            self.actively_identifying = False
+            self.id_timer.destroy()
 
     @torch.no_grad()
     def get_features(self, faces,q=True): ###
@@ -433,6 +430,11 @@ class PHINIXFaceRecognizer(Node):
                 draw_anno(img,box,person_name,person_color,thickness)
                 if (person_name in self.faces_seen) == False:
                     self.faces_seen.append(person_name)
+                    data = "Identified " + str(person_name)
+                    self.get_logger().info(data)
+                    msg = String()
+                    msg.data = data
+                    self.tts_publisher.publish(msg)
         end_time = time.time()
         print("time taken per frame = {}".format(end_time-st_time))
         msg = self.bridge.cv2_to_imgmsg(img, "bgr8")
