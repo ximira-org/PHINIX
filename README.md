@@ -65,4 +65,4 @@ Here are a few ways you can get involved:
 
 ## License
 
-TBD
+[Apache Version 2.0](LICENSE.md)
