@@ -22,6 +22,7 @@ TOPIC_PHINIX_RAW_IMG = "/oak/rgb/image_raw"
 TOPIC_PHINIX_DEPTH_IMG = "/oak/depth/image_raw"
 TOPIC_PHINIX_DISPARITY_IMG = "/oak/disparity/image_raw"
 TOPIC_PHINIX_PREVIEW_IMG = "/phinix/vis/object_det"
+CAM_FPS = 3.0
 
 RES_MAP = {
     '800': {'w': 1280, 'h': 800, 'res': dai.MonoCameraProperties.SensorResolution.THE_800_P },
@@ -116,10 +117,10 @@ class OAKLaunch(Node):
         self.xoutRgb = self.pipeline.create(dai.node.XLinkOut)
         self.camLeft.setCamera("left")
         self.camLeft.setResolution(self.resolution['res'])
-        self.camLeft.setFps(10.0)
+        self.camLeft.setFps(CAM_FPS)
         self.camRight.setCamera("right")
         self.camRight.setResolution(self.resolution['res'])
-        self.camRight.setFps(10.0)
+        self.camRight.setFps(CAM_FPS)
 
         self.stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
         self.stereo.setDepthAlign(dai.CameraBoardSocket.CAM_A)
@@ -169,7 +170,7 @@ class OAKLaunch(Node):
         self.camRgb.video.link(self.xoutVideo.input)
         self.camRgb.setPreviewSize(self.W, self.H)
         self.camRgb.setInterleaved(False)
-        self.camRgb.setFps(10)
+        self.camRgb.setFps(CAM_FPS)
         # self.camRgb.setPreviewKeepAspectRatio(False)
 
         # self.nn = pipeline.create(dai.node.MobileNetDetectionNetwork)
