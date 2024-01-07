@@ -1,0 +1,220 @@
+Panels:
+  - Class: rviz_common/Displays
+    Help Height: 284
+    Name: Displays
+    Property Tree Widget:
+      Expanded:
+        - /Global Options1
+        - /Status1
+        - /face_recognition1
+        - /text detection1
+        - /obstacle detection1
+      Splitter Ratio: 0.5
+    Tree Height: 372
+  - Class: rviz_common/Selection
+    Name: Selection
+  - Class: rviz_common/Tool Properties
+    Expanded:
+      - /2D Goal Pose1
+      - /Publish Point1
+    Name: Tool Properties
+    Splitter Ratio: 0.5886790156364441
+  - Class: rviz_common/Views
+    Expanded:
+      - /Current View1
+    Name: Views
+    Splitter Ratio: 0.5
+  - Class: rviz_common/Displays
+    Help Height: 70
+    Name: Displays
+    Property Tree Widget:
+      Expanded: ~
+      Splitter Ratio: 0.5
+    Tree Height: 371
+  - Class: rviz_common/Views
+    Expanded:
+      - /Current View1
+    Name: Views
+    Splitter Ratio: 0.5
+  - Class: rviz_common/Selection
+    Name: Selection
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Alpha: 0.5
+      Cell Size: 1
+      Class: rviz_default_plugins/Grid
+      Color: 160; 160; 164
+      Enabled: true
+      Line Style:
+        Line Width: 0.029999999329447746
+        Value: Lines
+      Name: Grid
+      Normal Cell Count: 0
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Plane: XY
+      Plane Cell Count: 10
+      Reference Frame: <Fixed Frame>
+      Value: true
+    - Class: rviz_default_plugins/Image
+      Enabled: true
+      Max Value: 1
+      Median window: 5
+      Min Value: 0
+      Name: face_recognition
+      Normalize Range: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /phinix/vis/face_rec
+      Value: true
+    - Class: rviz_default_plugins/Image
+      Enabled: true
+      Max Value: 1
+      Median window: 5
+      Min Value: 0
+      Name: text detection
+      Normalize Range: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /phinix/vis_image
+      Value: true
+    - Class: rviz_default_plugins/Image
+      Enabled: true
+      Max Value: 1
+      Median window: 5
+      Min Value: 0
+      Name: obstacle detection
+      Normalize Range: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /phinix/vis/disparity
+      Value: true
+    - Class: rviz_default_plugins/Image
+      Enabled: true
+      Max Value: 1
+      Median window: 5
+      Min Value: 0
+      Name: object detection
+      Normalize Range: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /phinix/vis/object_det
+      Value: true
+    - Class: rviz_default_plugins/Image
+      Enabled: true
+      Max Value: 1
+      Median window: 5
+      Min Value: 0
+      Name: Image
+      Normalize Range: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /phinix/vis/disparity
+      Value: true
+  Enabled: true
+  Global Options:
+    Background Color: 48; 48; 48
+    Fixed Frame: map
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz_default_plugins/Interact
+      Hide Inactive Objects: true
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+    - Class: rviz_default_plugins/FocusCamera
+    - Class: rviz_default_plugins/Measure
+      Line color: 128; 128; 0
+    - Class: rviz_default_plugins/SetInitialPose
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /initialpose
+    - Class: rviz_default_plugins/SetGoal
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /goal_pose
+    - Class: rviz_default_plugins/PublishPoint
+      Single click: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /clicked_point
+  Transformation:
+    Current:
+      Class: rviz_default_plugins/TF
+  Value: true
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Distance: 9.899999618530273
+      Enable Stereo Rendering:
+        Stereo Eye Separation: 0.05999999865889549
+        Stereo Focal Distance: 1
+        Swap Stereo Eyes: false
+        Value: false
+      Focal Point:
+        X: 0
+        Y: 0
+        Z: 0
+      Focal Shape Fixed Size: false
+      Focal Shape Size: 0.05000000074505806
+      Invert Z Axis: false
+      Name: Current View
+      Near Clip Distance: 0.009999999776482582
+      Pitch: 0.7447971105575562
+      Target Frame: <Fixed Frame>
+      Value: Orbit (rviz)
+      Yaw: 4.843585968017578
+    Saved: ~
+Window Geometry:
+  Displays:
+    collapsed: false
+  Height: 1016
+  Hide Left Dock: false
+  Hide Right Dock: false
+  Image:
+    collapsed: false
+  QMainWindow State: 000000ff00000000fd0000000400000000000001f40000039efc0200000023fb0000001200530065006c0065006300740069006f006e000000003d000000840000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afc0000003d000002cd000000c900fffffffa000000020100000003fb0000000a0049006d0061006700650000000000ffffffff0000000000000000fb00000020006f0062006a00650063007400200064006500740065006300740069006f006e0000000000ffffffff0000000000000000fb000000100044006900730070006c00610079007301000000000000041e0000015600fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb000000200066006100630065005f007200650063006f0067006e006900740069006f006e0300000523000002660000025b0000019ffb0000001c007400650078007400200064006500740065006300740069006f006e030000053c000000c50000020e00000176fb0000000a0049006d0061006700650200000676000002980000022e0000013afb0000000a0049006d00610067006500000001b2000000330000000000000000fb0000000a0049006d00610067006500000002800000015b0000000000000000fb0000000a0049006d0061006700650100000231000001aa0000000000000000fb0000000a0049006d00610067006501000002410000019a0000000000000000fb0000000a0049006d0061006700650100000310000000cb0000000000000000fb0000000a0049006d0061006700650100000239000001a20000000000000000fb0000000a0049006d0061006700650100000310000000cb0000000000000000fb0000000a0049006d0061006700650000000310000000cb0000000000000000fb0000000a0049006d006100670065010000025f0000017c0000000000000000fb0000000a0049006d0061006700650100000137000002a40000000000000000fb0000000a0049006d006100670065010000032a000000b10000000000000000fb0000000a0049006d0061006700650000000311000000ca0000000000000000fb0000000a0049006d0061006700650000000222000000e90000000000000000fb0000000a0049006d0061006700650000000311000000ca0000000000000000fb0000000a0049006d0061006700650100000310000000cb0000000000000000fb000000100044006900730070006c00610079007302000004c3000000a50000041e000001d0fb0000000a005600690065007700730000000302000000d9000000a400fffffffb0000001200530065006c0065006300740069006f006e020000047c000001830000041e000000acfb00000020006f0062006a00650063007400200064006500740065006300740069006f006e010000026e0000016d0000000000000000fb0000000a0049006d00610067006503000003e6000000b700000252000001cafb00000020006f0062006a00650063007400200064006500740065006300740069006f006e030000027d000002690000021700000197fb00000020006f0062006a00650063007400200064006500740065006300740069006f006e03000002c80000026b000001f400000185fb00000020006f0062006a00650063007400200064006500740065006300740069006f006e03000002cc00000287000001f400000172fb0000000a0049006d0061006700650100000310000000cb0000002800ffffff000000010000010f0000039efc0200000002fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000003d0000039e000000a400ffffff00000002000009b800000106fc0100000001fb00000024006f00620073007400610063006c006500200064006500740065006300740069006f006e03000002c0000000c9000001ff0000016400000003000004420000003efc0100000002fb0000000800540069006d00650100000000000004420000000000000000fb0000000800540069006d00650100000000000004500000000000000000000006a90000039e00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  Selection:
+    collapsed: false
+  Tool Properties:
+    collapsed: false
+  Views:
+    collapsed: false
+  Width: 2488
+  X: 72
+  Y: 27
+  face_recognition:
+    collapsed: false
+  object detection:
+    collapsed: false
+  obstacle detection:
+    collapsed: false
+  text detection:
+    collapsed: false
