@@ -135,4 +135,6 @@ RUN python3 -m pip install blobconverter
 RUN apt install pocl-opencl-icd -y
 RUN python3 -m pip install rapidocr_openvino
 RUN python3 -m pip install ultralytics==8.0.231
+RUN apt-get install libspeexdsp-dev
+RUN python3 -m pip install openwakeword https://github.com/dscripka/openWakeWord/releases/download/v0.1.1/speexdsp_ns-0.1.2-cp38-cp38-linux_x86_64.whl
 WORKDIR /home/PHINIX
