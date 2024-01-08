@@ -4,6 +4,9 @@ import rclpy
 from rclpy.qos import ReliabilityPolicy, QoSProfile
 from rclpy.node import Node
 from sensor_msgs.msg import Image
+from geometry_msgs.msg import Point
+from std_msgs.msg import String
+from phinix_perception_msgs.msg import BBoxMsg
 from cv_bridge import CvBridge
 import os 
 
@@ -22,6 +25,8 @@ TOPIC_PHINIX_RAW_IMG = "/oak/rgb/image_raw"
 TOPIC_PHINIX_DEPTH_IMG = "/oak/depth/image_raw"
 TOPIC_PHINIX_DISPARITY_IMG = "/oak/disparity/image_raw"
 TOPIC_PHINIX_PREVIEW_IMG = "/phinix/vis/object_det"
+TOPIC_OBJ_DET_BBOX = "/phinix/object_det/bbox"
+
 CAM_FPS = 3.0
 
 RES_MAP = {
@@ -62,6 +67,27 @@ class FPSHandler:
     def fps(self):
         return self.frame_cnt / (self.timestamp - self.start)
 
+def make_point(x, y, z=0.0):
+    pt = Point()
+    pt.x = x
+    pt.y = y
+    pt.z = z
+    return pt
+
+def clock_angle(x_val):
+    if x_val < 0.2:
+        return 10
+    if x_val < 0.4:
+        return 11
+    if x_val < 0.6:
+        return 12
+    if x_val < 0.8:
+        return 1
+    if x_val < 1.0:
+        return 2
+    else:
+        return -1
+
 class OAKLaunch(Node):
 
     def __init__(self):
@@ -75,6 +101,7 @@ class OAKLaunch(Node):
         self.depth_publisher_ = self.create_publisher(Image, TOPIC_PHINIX_DEPTH_IMG, 10)
         self.disparity_publisher_ = self.create_publisher(Image, TOPIC_PHINIX_DISPARITY_IMG, 10)
         self.preview_publisher_ = self.create_publisher(Image, TOPIC_PHINIX_PREVIEW_IMG, 10)
+        self.bbox_publisher_ = self.create_publisher(BBoxMsg, TOPIC_OBJ_DET_BBOX, 10)
         self.bridge = CvBridge()
         self.lrcheck = True  # Better handling for occlusions
         self.extended = False  # Closer-in minimum depth, disparity range is doubled
@@ -199,6 +226,7 @@ class OAKLaunch(Node):
         self.xoutDepth.setStreamName("depth")
         self.stereo.depth.link(self.xoutDepth.input)
         self.stereo.outConfig.link(self.xoutStereoCfg.input)
+        self.bbox_msg = BBoxMsg()
 
         with self.device:
             self.device.startPipeline(self.pipeline)
@@ -240,6 +268,9 @@ class OAKLaunch(Node):
                                 (2, frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4, color2)
                     frame = self.displayFrame("rgb", frame, detections)
                     # print("preview shape = ", frame.shape)
+                    self.update_bbox_msg(frame, detections)
+                    self.bbox_publisher_.publish(self.bbox_msg)
+                    self.bbox_msg = BBoxMsg()
                     ros_preview = self.bridge.cv2_to_imgmsg(frame, "bgr8")
                     self.preview_publisher_.publish(ros_preview)
 
@@ -269,6 +300,19 @@ class OAKLaunch(Node):
                     dep_frame = dep_frame.astype(np.uint16)
                     ros_depth = self.bridge.cv2_to_imgmsg(dep_frame, "16UC1")
                     self.depth_publisher_.publish(ros_depth)
+
+    def update_bbox_msg(self, frame, detections):
+        # print("preview shape = ", frame.shape)
+        for detection in detections:
+            bbox = self.frameNorm(frame, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
+            self.bbox_msg.top_left_x_ys.append(make_point(bbox[0]*1.0, bbox[1]*1.0))
+            self.bbox_msg.bottom_right_x_ys.append(make_point(bbox[2]*1.0, bbox[3]*1.0))
+            label_str = String()
+            label_str.data = self.labels[detection.label]
+            self.bbox_msg.classes.append(label_str)
+            self.bbox_msg.confidences.append(detection.confidence)
+            self.bbox_msg.module_name.data = "object_det"
+            self.bbox_msg.clock_angle.append(clock_angle((detection.xmin + detection.xmax)/ 2))
 
     # nn data, being the bounding box locations, are in <0..1> range - they need to be normalized with frame width/height
     def frameNorm(self, frame, bbox):
