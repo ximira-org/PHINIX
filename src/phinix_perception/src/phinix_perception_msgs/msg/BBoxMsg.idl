@@ -1,0 +1,19 @@
+#include "std_msgs/msg/Header.idl"
+#include "std_msgs/msg/String.idl"
+#include "geometry_msgs/msg/Pose.idl"
+
+module phinix_perception_msgs {
+  module msg {
+    @verbatim (language="comment", text=
+      " Bounding box msg")
+    struct BBoxMsg {
+      std_msgs::msg::Header header;
+      sequence<std_msgs::msg::String> classes;
+      sequence<geometry_msgs::msg::Point> top_left_x_ys;
+      sequence<geometry_msgs::msg::Point> bottom_right_x_ys;
+      sequence<float> confidences;
+      std_msgs::msg::String module_name;
+      sequence<int8> clock_angle;
+    };
+  };
+};
