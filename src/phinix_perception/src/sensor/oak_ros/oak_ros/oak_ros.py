@@ -190,7 +190,7 @@ class OAKLaunch(Node):
         self.xoutVideo.setStreamName("video")
         # self.Properties
         # self.camRgb.setBoardSocket(dai.CameraBoardSocket.CAM_A)
-        self.camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
+        self.camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_720_P)
         # self.camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_4_K)
         # self.camRgb.setVideoSize(3840,2160)
         # self.camRgb.setIspScale(1,1)
@@ -269,6 +269,7 @@ class OAKLaunch(Node):
                     frame = self.displayFrame("rgb", frame, detections)
                     # print("preview shape = ", frame.shape)
                     self.update_bbox_msg(frame, detections)
+                    self.bbox_msg.header.stamp = self.get_clock().now().to_msg()
                     self.bbox_publisher_.publish(self.bbox_msg)
                     self.bbox_msg = BBoxMsg()
                     ros_preview = self.bridge.cv2_to_imgmsg(frame, "bgr8")
@@ -281,6 +282,7 @@ class OAKLaunch(Node):
                 if inFrame is not None:
                     full_frame = inFrame.getCvFrame()
                     ros_full_Frame = self.bridge.cv2_to_imgmsg(full_frame, "bgr8")
+                    ros_full_Frame.header.stamp = self.get_clock().now().to_msg()
                     self.rgb_publisher_.publish(ros_full_Frame)
 
 
@@ -293,6 +295,7 @@ class OAKLaunch(Node):
                     # Available color maps: https://docs.opencv.org/3.4/d3/d50/group__imgproc__colormap.html
                     dis_frame = cv2.applyColorMap(dis_frame, cv2.COLORMAP_JET)
                     ros_disparity = self.bridge.cv2_to_imgmsg(dis_frame, "bgr8")
+                    ros_disparity.header.stamp = self.get_clock().now().to_msg()
                     self.disparity_publisher_.publish(ros_disparity)
 
                 if inDepth is not None:

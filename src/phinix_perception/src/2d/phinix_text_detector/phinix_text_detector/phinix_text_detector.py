@@ -90,6 +90,7 @@ class PHINIXTextDetector(Node):
                 boxes, txts, scores = list(zip(*result))
             np_img = np.array(im_rgb, dtype="uint8")
             self.update_bbox_msg(np_img, boxes, txts, scores)
+        self.bbox_msg.header.stamp = msg.header.stamp
         self.bbox_publisher_.publish(self.bbox_msg)
         self.bbox_msg = BBoxMsg()
 
