@@ -25,7 +25,7 @@ TOPIC_PHINIX_RAW_IMG = "/oak/rgb/image_raw"
 TOPIC_PHINIX_DEPTH_IMG = "/oak/depth/image_raw"
 TOPIC_PHINIX_DISPARITY_IMG = "/oak/disparity/image_raw"
 TOPIC_PHINIX_PREVIEW_IMG = "/phinix/vis/object_det"
-TOPIC_OBJ_DET_BBOX = "/phinix/object_det/bbox"
+TOPIC_OBJ_DET_BBOX = "/phinix/module/object_det/bbox"
 
 CAM_FPS = 3.0
 

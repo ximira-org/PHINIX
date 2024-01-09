@@ -9,6 +9,7 @@ module phinix_perception_msgs {
     struct BBoxMsg {
       std_msgs::msg::Header header;
       sequence<std_msgs::msg::String> classes;
+      sequence<std_msgs::msg::String> people_names;
       sequence<geometry_msgs::msg::Point> top_left_x_ys;
       sequence<geometry_msgs::msg::Point> bottom_right_x_ys;
       sequence<float> confidences;
