@@ -273,6 +273,7 @@ class OAKLaunch(Node):
                     self.bbox_publisher_.publish(self.bbox_msg)
                     self.bbox_msg = BBoxMsg()
                     ros_preview = self.bridge.cv2_to_imgmsg(frame, "bgr8")
+                    ros_preview.header.stamp = self.get_clock().now().to_msg()
                     self.preview_publisher_.publish(ros_preview)
 
                 if inDet is not None:
