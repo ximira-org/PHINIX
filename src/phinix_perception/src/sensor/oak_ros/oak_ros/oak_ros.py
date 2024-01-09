@@ -262,30 +262,22 @@ class OAKLaunch(Node):
                 inFrame = qFrames.get()
                 inDepth = qDepth.get()
                 inDisparity = qDisp.get()
-                if inRgb is not None:
-                    frame = inRgb.getCvFrame()
-                    cv2.putText(frame, "NN fps: {:.2f}".format(counter / (time.monotonic() - startTime)),
-                                (2, frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4, color2)
-                    frame = self.displayFrame("rgb", frame, detections)
-                    # print("preview shape = ", frame.shape)
-                    self.update_bbox_msg(frame, detections)
-                    self.bbox_msg.header.stamp = self.get_clock().now().to_msg()
-                    self.bbox_publisher_.publish(self.bbox_msg)
-                    self.bbox_msg = BBoxMsg()
-                    ros_preview = self.bridge.cv2_to_imgmsg(frame, "bgr8")
-                    ros_preview.header.stamp = self.get_clock().now().to_msg()
-                    self.preview_publisher_.publish(ros_preview)
-
+                
                 if inDet is not None:
                     detections = inDet.detections
                     counter += 1
-                
+
+                if inRgb is not None:
+                    det_frame = inRgb.getCvFrame()
+                    cv2.putText(det_frame, "NN fps: {:.2f}".format(counter / (time.monotonic() - startTime)),
+                                (2, det_frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4, color2)
+            
                 if inFrame is not None:
                     full_frame = inFrame.getCvFrame()
+                    full_frame = cv2.resize(full_frame, (640, 352))
                     ros_full_Frame = self.bridge.cv2_to_imgmsg(full_frame, "bgr8")
                     ros_full_Frame.header.stamp = self.get_clock().now().to_msg()
                     self.rgb_publisher_.publish(ros_full_Frame)
-
 
                 if inDisparity is not None:
                     dis_frame = inDisparity.getCvFrame()
@@ -306,8 +298,19 @@ class OAKLaunch(Node):
                     ros_depth.header.stamp = self.get_clock().now().to_msg()
                     self.depth_publisher_.publish(ros_depth)
 
-    def update_bbox_msg(self, frame, detections):
+                self.update_bbox_msg(det_frame, detections, dep_frame)
+                self.bbox_msg.header.stamp = self.get_clock().now().to_msg()
+                self.bbox_publisher_.publish(self.bbox_msg)
+                det_frame = self.displayFrame("rgb", det_frame, detections)
+                # print("preview shape = ", frame.shape)
+                ros_preview = self.bridge.cv2_to_imgmsg(det_frame, "bgr8")
+                ros_preview.header.stamp = self.get_clock().now().to_msg()
+                self.preview_publisher_.publish(ros_preview)
+                self.bbox_msg = BBoxMsg()
+
+    def update_bbox_msg(self, frame, detections, depth_frame):
         # print("preview shape = ", frame.shape)
+        depth_delta = 10
         for detection in detections:
             bbox = self.frameNorm(frame, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
             self.bbox_msg.top_left_x_ys.append(make_point(bbox[0]*1.0, bbox[1]*1.0))
@@ -319,6 +322,15 @@ class OAKLaunch(Node):
             self.bbox_msg.module_name.data = "object_det"
             self.bbox_msg.clock_angle.append(clock_angle((detection.xmin + detection.xmax)/ 2))
 
+            # depth (Z) calculation
+            depth_centroid = [(bbox[0] + bbox[2]) // 2 , (bbox[1] + bbox[3]) // 2]
+            x_min = max(depth_centroid[0] - int(depth_delta/2), 0) 
+            y_min = max(depth_centroid[1] - int(depth_delta/2), 0) 
+            x_max = min(depth_centroid[0] + int(depth_delta/2), depth_frame.shape[1]) 
+            y_max = min(depth_centroid[1] + int(depth_delta/2), depth_frame.shape[0]) 
+            depth_dist = np.mean(depth_frame[y_min:y_max, x_min:x_max]) / 1000 # mm to m
+            self.bbox_msg.depths.append(depth_dist)
+
     # nn data, being the bounding box locations, are in <0..1> range - they need to be normalized with frame width/height
     def frameNorm(self, frame, bbox):
         normVals = np.full(len(bbox), frame.shape[0])
@@ -327,9 +339,11 @@ class OAKLaunch(Node):
 
     def displayFrame(self, name, frame, detections):
         color = (255, 0, 0)
-        for detection in detections:
+        for detection, depth in zip(detections, self.bbox_msg.depths):
             bbox = self.frameNorm(frame, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
-            cv2.putText(frame, self.labels[detection.label], (bbox[0] + 10, bbox[1] + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
+            clk_angle = str(clock_angle((detection.xmin + detection.xmax)/ 2))
+            cv2.putText(frame, self.labels[detection.label] + " @ " + clk_angle + " @ " + str(depth)[0:4],
+                                    (bbox[0] + 10, bbox[1] + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, (0, 255, 0))
             cv2.putText(frame, f"{int(detection.confidence * 100)}%", (bbox[0] + 10, bbox[1] + 40), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
             cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
         return frame

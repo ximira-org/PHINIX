@@ -14,6 +14,7 @@ module phinix_perception_msgs {
       sequence<geometry_msgs::msg::Point> top_left_x_ys;
       sequence<geometry_msgs::msg::Point> bottom_right_x_ys;
       sequence<float> confidences;
+      sequence<float> depths;
       std_msgs::msg::String module_name;
       sequence<int8> clock_angle;
     };
