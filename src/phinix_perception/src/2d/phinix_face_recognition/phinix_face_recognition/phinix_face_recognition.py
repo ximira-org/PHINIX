@@ -60,7 +60,7 @@ def clock_angle(x_val):
     else:
         return None
 
-def draw_anno(img,box,label,color,thickness):
+def draw_anno(img,box,label,color,thickness, clk_angle):
 
   txt_color=(255, 255, 255)
 
@@ -75,7 +75,7 @@ def draw_anno(img,box,label,color,thickness):
   p2 = p1[0] + w, p1[1] - (h+4) if outside else p1[1] + (h + 4)
   cv2.rectangle(img, p1, p2, color, -1, cv2.LINE_AA)  # filled
 
-  cv2.putText(img, label, (p1[0], p1[1] - 2\
+  cv2.putText(img, label + " @ " + clk_angle, (p1[0], p1[1] - 2\
           if outside else p1[1] + h), 0, thickness / 3, txt_color,thickness=tf, lineType=cv2.LINE_AA)
   return(img)
 
@@ -434,8 +434,9 @@ class PHINIXFaceRecognizer(Node):
             self.bbox_msg.module_name.data = "face_rec"
             xmin_norm = bbox[0]/frame.shape[1]
             xmax_norm = bbox[2]/frame.shape[1]
-            self.bbox_msg.clock_angle.append(clock_angle((xmin_norm + xmax_norm)/ 2))
-            draw_anno(frame,bbox,person_name,person_color,thickness)
+            clk_angle = clock_angle((xmin_norm + xmax_norm)/ 2)
+            self.bbox_msg.clock_angle.append(clk_angle)
+            draw_anno(frame,bbox,person_name,person_color,thickness, str(clk_angle))
         return frame
         
 def main(args=None):

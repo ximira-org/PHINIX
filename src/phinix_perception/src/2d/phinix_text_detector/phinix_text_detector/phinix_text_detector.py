@@ -122,13 +122,14 @@ class PHINIXTextDetector(Node):
                 self.bbox_msg.module_name.data = "text_rec"
                 xmin_norm = x_min/img.shape[1]
                 xmax_norm = x_max/img.shape[1]
-                self.bbox_msg.clock_angle.append(clock_angle((xmin_norm + xmax_norm)/ 2))
-
+                clk_angle = clock_angle((xmin_norm + xmax_norm)/ 2)
+                self.bbox_msg.clock_angle.append(clk_angle)
                 img_resized = cv2.polylines(img_resized, [pts], is_closed, color, thickness)
                 font_scale = 1.5
                 text_thickness = 2
                 text_org = (pts[0][0], pts[0][1])
-                img_resized = cv2.putText(img_resized, txt, text_org, cv2.FONT_HERSHEY_SIMPLEX, font_scale, color, text_thickness, cv2.LINE_AA)
+                img_resized = cv2.putText(img_resized, txt + " @ " + str(clk_angle), 
+                            text_org, cv2.FONT_HERSHEY_SIMPLEX, font_scale, color, text_thickness, cv2.LINE_AA)
         img_resized = np.array(img_resized, dtype="uint8")
         msg = self.bridge.cv2_to_imgmsg(img_resized, "bgr8")
         self.vis_publisher_.publish(msg)
