@@ -14,6 +14,9 @@ from rclpy.node import Node
 from sensor_msgs.msg import Image as RosImage
 from cv_bridge import CvBridge
 from ament_index_python.packages import get_package_share_directory
+from phinix_perception_msgs.msg import BBoxMsg
+from geometry_msgs.msg import Point
+from std_msgs.msg import String
 
 import cv2
 import numpy as np
@@ -34,7 +37,28 @@ from ultralytics.utils.plotting import colors
 VIS = True
 TOPIC_PHINIX_RAW_IMG = "/phinix/rgb/image_raw"
 TOPIC_VIS_IMG = "/phinix/vis/face_rec"
+TOPIC_FACE_REC_BBOX = "/phinix/module/face_rec/bbox"
 
+def make_point(x, y, z=0.0):
+    pt = Point()
+    pt.x = x
+    pt.y = y
+    pt.z = z
+    return pt
+
+def clock_angle(x_val):
+    if x_val < 0.2:
+        return 10
+    if x_val < 0.4:
+        return 11
+    if x_val < 0.6:
+        return 12
+    if x_val < 0.8:
+        return 1
+    if x_val < 1.0:
+        return 2
+    else:
+        return None
 
 def draw_anno(img,box,label,color,thickness):
 
@@ -80,6 +104,7 @@ class PHINIXFaceRecognizer(Node):
             self.listener_callback,
             QoSProfile(depth=1, reliability=ReliabilityPolicy.BEST_EFFORT))
         self.vis_publisher_ = self.create_publisher(RosImage, TOPIC_VIS_IMG, 10)
+        self.bbox_publisher_ = self.create_publisher(BBoxMsg, TOPIC_FACE_REC_BBOX, 10)
         self.bridge = CvBridge()
         self.quantized=False
         self.conf_thres=0.45
@@ -112,6 +137,7 @@ class PHINIXFaceRecognizer(Node):
             self.iden_model=identification_base()
             self.iden_model.load_state_dict(torch.load(os.path.join(model_dir, "idenr.pt")))
             self.iden_model.eval()
+        self.bbox_msg = BBoxMsg()
 
     @torch.no_grad()
     def get_features(self, faces,q=True): ###
@@ -376,23 +402,40 @@ class PHINIXFaceRecognizer(Node):
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         detections = self.detect(img_rgb, self.det_compiled_model)[0]
         print(detections)
-        faces, face_boxes, _ = self.get_face_det_results(detections, img, self.label_map)
+        faces, face_boxes, confs = self.get_face_det_results(detections, img, self.label_map)
         # print(xyxys)
         if faces is not None:
             #start=time.time()
             features=self.get_features(faces,q=self.quantized)
             #print(time.time()-start)
             person_res = self.find_match_normal(features,galley_data,galley_names)
-            for ipres,pres in enumerate(person_res):
-                box=face_boxes[ipres]
-                person_name,person_color=pres
-                person_color=(int(person_color[0]),int(person_color[1]),int(person_color[2]))
-                draw_anno(img,box,person_name,person_color,thickness)
+            img = self.update_bbox_msg(img, face_boxes, confs, person_res, thickness)
+
+        self.bbox_publisher_.publish(self.bbox_msg)
+        self.bbox_msg = BBoxMsg()
         end_time = time.time()
         print("time taken per frame = {}".format(end_time-st_time))
         msg = self.bridge.cv2_to_imgmsg(img, "bgr8")
         self.vis_publisher_.publish(msg)
 
+    def update_bbox_msg(self, frame, face_boxes, confs, person_res, thickness):
+        for ipres,pres in enumerate(person_res):
+            bbox=face_boxes[ipres]
+            conf = confs[ipres]
+            person_name,person_color=pres
+            person_color=(int(person_color[0]),int(person_color[1]),int(person_color[2]))
+            self.bbox_msg.top_left_x_ys.append(make_point(bbox[0]*1.0, bbox[1]*1.0))
+            self.bbox_msg.bottom_right_x_ys.append(make_point(bbox[2]*1.0, bbox[3]*1.0))
+            person_str = String()
+            person_str.data = person_name
+            self.bbox_msg.people_names.append(person_str)
+            self.bbox_msg.confidences.append(conf)
+            self.bbox_msg.module_name.data = "face_rec"
+            xmin_norm = bbox[0]/frame.shape[1]
+            xmax_norm = bbox[2]/frame.shape[1]
+            self.bbox_msg.clock_angle.append(clock_angle((xmin_norm + xmax_norm)/ 2))
+            draw_anno(frame,bbox,person_name,person_color,thickness)
+        return frame
         
 def main(args=None):
     rclpy.init(args=args)
