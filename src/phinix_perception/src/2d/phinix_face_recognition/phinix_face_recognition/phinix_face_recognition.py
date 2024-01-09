@@ -100,11 +100,6 @@ class PHINIXFaceRecognizer(Node):
         super().__init__('phinix_face_rec')
         self.declare_parameter('database_dir', rclpy.Parameter.Type.STRING)
         self.database_dir = self.get_parameter('database_dir').value
-        # self.subscription = self.create_subscription(
-        #     RosImage,
-        #     TOPIC_PHINIX_RAW_IMG,
-        #     self.listener_callback,
-        #     QoSProfile(depth=1, reliability=ReliabilityPolicy.BEST_EFFORT))
         self.vis_publisher_ = self.create_publisher(RosImage, TOPIC_VIS_IMG, 10)
         self.bbox_publisher_ = self.create_publisher(BBoxMsg, TOPIC_FACE_REC_BBOX, 10)
         self.bridge = CvBridge()
@@ -385,48 +380,6 @@ class PHINIXFaceRecognizer(Node):
         detections = self.postprocess(pred_boxes=boxes, input_hw=input_hw, orig_img=image, pred_masks=masks)
         return detections
 
-    def listener_callback(self, msg):
-        img = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
-        galley_data=[]
-        galley_names=[]
-        for r,d,f in os.walk(self.database_dir):
-            for file in f:
-                if '.npy' in file:
-                    galley_data.append(torch.from_numpy(np.load(os.path.join(r,file))))
-                    galley_names.append(file[:-4])
-
-        if len(galley_data)!=0:
-            galley_data=torch.stack(galley_data).to(self.device)
-        else:
-            galley_data=torch.tensor([],dtype=torch.float32).to(self.device)
-
-        width  = img.shape[1]   # float `width`
-        height = img.shape[0]  # float `height`
-        font_scale = (width + height) / 1500
-        thickness = max(1, int(font_scale * 2))
-
-
-        st_time = time.time()
-        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        detections = self.detect(img_rgb, self.det_compiled_model)[0]
-        print(detections)
-        faces, face_boxes, confs = self.get_face_det_results(detections, img, self.label_map)
-        # print(xyxys)
-        if faces is not None:
-            #start=time.time()
-            features=self.get_features(faces,q=self.quantized)
-            #print(time.time()-start)
-            person_res = self.find_match_normal(features,galley_data,galley_names)
-            img = self.update_bbox_msg(img, face_boxes, confs, person_res, thickness)
-
-        self.bbox_msg.header.stamp = msg.header.stamp
-        self.bbox_publisher_.publish(self.bbox_msg)
-        self.bbox_msg = BBoxMsg()
-        end_time = time.time()
-        print("time taken per frame = {}".format(end_time-st_time))
-        msg = self.bridge.cv2_to_imgmsg(img, "bgr8")
-        self.vis_publisher_.publish(msg)
-
     def sync_callback(self, rgb_msg, depth_msg):
         img = np.frombuffer(rgb_msg.data, dtype=np.uint8).reshape(rgb_msg.height, rgb_msg.width, -1)
         im_depth = self.bridge.imgmsg_to_cv2(depth_msg, "16UC1")
@@ -455,11 +408,8 @@ class PHINIXFaceRecognizer(Node):
         detections = self.detect(img_rgb, self.det_compiled_model)[0]
         print(detections)
         faces, face_boxes, confs = self.get_face_det_results(detections, img, self.label_map)
-        # print(xyxys)
         if faces is not None:
-            #start=time.time()
             features=self.get_features(faces,q=self.quantized)
-            #print(time.time()-start)
             person_res = self.find_match_normal(features,galley_data,galley_names)
             img = self.update_bbox_msg(img, face_boxes, confs, person_res, thickness, im_depth)
 
@@ -498,12 +448,7 @@ class PHINIXFaceRecognizer(Node):
             x_max = min(depth_centroid[0] + int(depth_delta/2), depth_frame.shape[1]) 
             y_max = min(depth_centroid[1] + int(depth_delta/2), depth_frame.shape[0]) 
             depth_dist = np.mean(depth_frame[y_min:y_max, x_min:x_max]) / 1000 # mm to m
-            # print(depth_dist)
             self.bbox_msg.depths.append(depth_dist)
-            # img_resized = cv2.putText(img_resized, 
-            #             txt + " @ " + str(clk_angle) + " @ " + str(depth_dist)[0:4], 
-            #             text_org, cv2.FONT_HERSHEY_SIMPLEX, 
-            #             font_scale, color, text_thickness, cv2.LINE_AA)
             draw_anno(frame,bbox,person_name,person_color,
                         thickness, str(clk_angle), str(depth_dist)[0:4])
         return frame

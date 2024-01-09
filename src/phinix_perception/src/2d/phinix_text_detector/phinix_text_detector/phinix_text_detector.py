@@ -45,11 +45,6 @@ class PHINIXTextDetector(Node):
 
     def __init__(self):
         super().__init__('phinix_text_detector')
-        # self.subscription = self.create_subscription(
-        #     Image,
-        #     TOPIC_PHINIX_RAW_IMG,
-        #     self.listener_callback,
-        #     QoSProfile(depth=1, reliability=ReliabilityPolicy.BEST_EFFORT))
         self.vis_publisher_ = self.create_publisher(Image, TOPIC_VIS_IMG, 10)
         self.bbox_publisher_ = self.create_publisher(BBoxMsg, TOPIC_TEXT_REC_BBOX, 10)
         self.rapid_ocr = rog.RapidOCR()
@@ -87,21 +82,6 @@ class PHINIXTextDetector(Node):
         msg = self.bridge.cv2_to_imgmsg(img_resized, "bgr8")
         self.vis_publisher_.publish(msg)
 
-    def listener_callback(self, msg):
-        im_rgb = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
-        result, elapse_list = self.rapid_ocr(im_rgb)
-        boxes = txts = scores = None
-        if VIS: 
-            if result is not None:
-                print(result)
-                print(elapse_list)
-                boxes, txts, scores = list(zip(*result))
-            np_img = np.array(im_rgb, dtype="uint8")
-            self.update_bbox_msg(np_img, boxes, txts, scores)
-        self.bbox_msg.header.stamp = msg.header.stamp
-        self.bbox_publisher_.publish(self.bbox_msg)
-        self.bbox_msg = BBoxMsg()
-    
     def sync_callback(self, rgb_msg, depth_msg):
         im_rgb = np.frombuffer(rgb_msg.data, dtype=np.uint8).reshape(rgb_msg.height, rgb_msg.width, -1)
         im_depth = self.bridge.imgmsg_to_cv2(depth_msg, "16UC1")
