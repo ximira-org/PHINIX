@@ -411,6 +411,7 @@ class PHINIXFaceRecognizer(Node):
             person_res = self.find_match_normal(features,galley_data,galley_names)
             img = self.update_bbox_msg(img, face_boxes, confs, person_res, thickness)
 
+        self.bbox_msg.header.stamp = msg.header.stamp
         self.bbox_publisher_.publish(self.bbox_msg)
         self.bbox_msg = BBoxMsg()
         end_time = time.time()
