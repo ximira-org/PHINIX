@@ -302,6 +302,7 @@ class OAKLaunch(Node):
                     dep_frame = inDepth.getFrame()
                     dep_frame = dep_frame.astype(np.uint16)
                     ros_depth = self.bridge.cv2_to_imgmsg(dep_frame, "16UC1")
+                    ros_depth.header.stamp = self.get_clock().now().to_msg()
                     self.depth_publisher_.publish(ros_depth)
 
     def update_bbox_msg(self, frame, detections):
