@@ -16,6 +16,20 @@ develop an innovative, wearable system that gives blind users more freedom to
 participate in all aspects of society. To learn more about our story, please
 visit [Ximira's About Us page](https://ximira.org/about).
 
+## PHINIX in action
+
+### Pathway Recognition
+
+https://github.com/eeshangarg/PHINIX/assets/7251823/4a3d9d8a-1de6-46f7-97a8-7b666c0d9d6b
+
+### Object Detection
+
+https://github.com/eeshangarg/PHINIX/assets/7251823/544dc432-bc03-4933-b9ff-967c92da9d12
+
+### Face Recognition
+
+https://github.com/eeshangarg/PHINIX/assets/7251823/4cc96b8d-b26b-4075-83d5-bef9ddb3edd6
+
 ## Getting started
 
 Here are some useful resources to get started with PHINIX:
