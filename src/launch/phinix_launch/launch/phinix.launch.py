@@ -82,15 +82,15 @@ def generate_launch_description():
     ld = [
         oak_ros_node,
         phinix_obstacle_detector_node,
-        tts_balacoon_param,
-        face_rec__param,
-        phinix_text_detector_node,
+        #tts_balacoon_param,
+        #face_rec__param,
+        #phinix_text_detector_node,
         # phinix_tts_simulator_node,
-        phinix_tts_balacoon_node,
+        #phinix_tts_balacoon_node,
         phinix_sensor_abstractor_node,
-        phinix_face_rec_node,
-        phinix_face_reg_node,
-        # phinix_wakeword_node
+        #phinix_face_rec_node,
+        #phinix_face_reg_node,
+        #phinix_wakeword_node
     ]
 
     return LaunchDescription(ld)
