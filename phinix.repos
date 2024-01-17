@@ -15,3 +15,7 @@ repositories:
     type: git
     url: git@github.com:ximira-org/phinix_sound_effects_ui.git
     version: main
+  src/phinix_ui/phinix_haptics_ui:
+    type: git
+    url: git@github.com:ximira-org/phinix_haptics_ui.git
+    version: main
