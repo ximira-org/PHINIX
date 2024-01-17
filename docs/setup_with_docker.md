@@ -1,162 +1,116 @@
-## Setup code and running:
+# Setup PHINIX with Docker
 
-The main repository for PHINIX. The current setup is developed and tested on Ubuntu 20.04 with ROS2 Foxy.
+This guide presents step-by-step instructions on how to set up PHINIX with
+Docker. The current setup is developed and tested on Ubuntu 20.04 with ROS2
+Foxy.
 
-### Install Ubuntu
-* Download Ubuntu 20.04 from [here](https://releases.ubuntu.com/focal/)
+## Step 1: Install Ubuntu
 
-* Installation: follow the instructions from [here](https://ubuntu.com/tutorials/install-ubuntu-desktop#1-overview).
+- You can download the required version of Ubuntu from the
+  [official Ubuntu 20.04.6 LTS (Focal Fossa) release page](https://releases.ubuntu.com/focal/).
 
-### Install ROS2 Foxy
-* Install ROS2 Foxy using the binary version. Follow [this](https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html).
+- To install Ubuntu, follow the instructions in the
+  [Install Ubuntu desktop tutorial](https://ubuntu.com/tutorials/install-ubuntu-desktop#1-overview).
 
-* Include `source /opt/ros/foxy/setup.bash` in bashrc.
+## Step 2: Install ROS2 Foxy
 
-* Make sure ROS2 installed correctly by running the talker listener examples explained in the above link.
+The Robot Operating System (ROS) is a set of software libraries and tools
+for building robot applications. Follow these steps to install and set up ROS2:
 
-* Install colcon for ROS2, follow [here](https://colcon.readthedocs.io/en/released/user/installation.html).
+- Install ROS2 Foxy by following
+  [ROS2's official installation docs for Ubuntu](https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html).
 
-### Install vim and git
-* `sudo apt-get install vim git -y`
+- Add the following line to the end of your `.bashrc` file:
+  ``` bash
+  source /opt/ros/foxy/setup.bash
+  ```
 
-### Setup git
-* Follow [this](https://docs.github.com/en/get-started/getting-started-with-git/setting-your-username-in-git) and [this](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-email-preferences/setting-your-commit-email-address) to setup git configs. 
+- To make sure that ROS2 is installed correctly, you can run 
+  [the talker and listener examples in their](https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html#try-some-examples).
 
-* Set up SSH key using [this](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent).
+- Install `colcon`` for ROS2 by following
+  [colcon's official installation instructions](https://colcon.readthedocs.io/en/released/user/installation.html).
 
-### Clone the repo
+## Step 3: Forking the PHINIX repository
 
-* `cd ~`
+If you haven't already, we recommend going through all the sections in GitHub's
+official guide to [Fork a repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo?tool=webui&platform=linux).
+You should apply the steps outlined therein to fork and setup the
+[ximira-org/PHINIX repository](https://github.com/ximira-org/PHINIX). Once you
+have cloned and set up the repository locally, you may proceed to **Step 4**.
 
-* `git clone git@github.com:ximira-org/PHINIX.git` 
+## Step 4: Running `setup_code.sh`
 
-* `cd ~/PHINIX`
+The `setup_code.sh` script will clone all the repositories required for
+PHINIX. Please follow these steps:
 
-### Clone sub repositories
+- First, install `pip` for Python 3 by running
+  `sudo apt-get install python3-pip`.
 
-Install pip for Python 3: `sudo apt-get install python3-pip`
+- Now, install `vcstool` using `pip` by running `sudo pip install vcstool`.
 
-Install vcs tool: `sudo pip install vcstool`
+- Finally, run `sh setup_code.sh` to clone all the requisite sub-repositories.
 
-setup the required code
+## Step 5: Build Docker image
 
-* `sh setup_code.sh`
+To build the Docker image:
 
-### build docker image
+- Make sure you are in the top-level `PHINIX/` directory.
 
-Recently switched to using a custom Python implementation of DepthAI.
-Delete the old Ros2 implementation located in: `/PHINIX/src/external`,
-leaving the `depthai-python` folder.
+- Build the `Dockerfile` by running the following command:
+  ``` bash
+  docker build -f utilities/docker/Dockerfile --build-arg USE_RVIZ=1 -t phinix_openvino_ros2 .
+  ```
 
-Build the Docker File
+## Step 6: Run Docker
 
-* `docker build -f utilities/docker/Dockerfile --build-arg USE_RVIZ=1 -t phinix_openvino_ros2 .`
+Run Docker using the following command:
 
-### run docker 
+``` bash
+docker run --name phinix_container -it -v /dev/:/dev/ -v /home/<username>/PHINIX:/home/PHINIX -v /tmp/.X11-unix:/tmp/.X11-unix --privileged -e DISPLAY phinix_openvino_ros2
+```
 
-In the below command replace <username> with your system user name
+You should replace `<username>` in the above command with your username on your
+Ubuntu installation. You should also replace `/home/<username>/PHINIX` with the
+correct path to the PHINIX repository.
 
-* `docker run --name phinix_container -it -v /dev/:/dev/ -v /home/<username>/PHINIX:/home/PHINIX -v /tmp/.X11-unix:/tmp/.X11-unix --privileged -e DISPLAY phinix_openvino_ros2`
+## Step 7: Build all the ROS modules
 
-If PHINIX repo is downloaded to different location, replace `/home/<username>/PHINIX` with the correct path in the above command
+Follow these steps to build all the ROS modules:
 
-### build all the ROS modules
+- In the Terminal, make sure you are in the top-level directory of the `PHINIX`
+  repository.
 
-* `cd /home/PHINIX`
+- In file `~/PHINIX/src/external/depthai-ros/depthai_filters/CMakeLists.txt`
+  change line 7 from `set(opencv_version 4)` to `set(opencv_version 4.7.0)`.
 
-* In file `~/PHINIX/src/external/depthai-ros/depthai_filters/CMakeLists.txt` edit line 7 from `set(opencv_version 4)` to `set(opencv_version 4.7.0)`
+- Run the following commands one after the other:
+  ``` bash
+  source /opt/ros/foxy/setup.bash
+  ./src/external/depthai-ros/build.sh -s $BUILD_SEQUENTIAL -r 1 -m 1
+  colcon build
+  source install/setup.bash
+  ```
 
-* `source /opt/ros/foxy/setup.bash`
+## Step 8: Launch all ROS2 nodes
 
-* `./src/external/depthai-ros/build.sh -s $BUILD_SEQUENTIAL -r 1 -m 1`
+To launch all nodes together, run the following command:
 
-* `colcon build`
+``` bash
+ros2 launch phinix_launch phinix.launch.py camera_model:=OAK-D-PRO-W
+```
 
-* `source install/setup.bash`
+Alternatively, you may choose to launch each node individually. To do so, you
+can follow the steps outlined in [this guide](launch_nodes_individually.md).
 
-### Launch all nodes at once via launch file
+## Step 9: Launch RViZ for visualization
 
-* `ros2 launch phinix_launch phinix.launch.py camera_model:=OAK-D-PRO-W`
+To launch `rviz2` for visualization, open a new terminal window and run the
+following commands:
 
-### Launch RViZ for visualization
-
-Open new terminal (for rviz2)
-
-* `xhost +local:docker`
-
-* `docker exec -it phinix_container bash`
-
-* `source install/setup.bash`
-
-* `rviz2` # add the necessary topics for visualization
-
-
-## Below steps are for launching nodes invidually. The below steps are not needed if `phinix.launch.py` (above) is launched.
-
-### Launch camera node
-
-* `cd /home/PHINIX`
-
-* `source install/setup.bash`
-
-* `ros2 launch depthai_ros_driver camera.launch.py camera_model:=OAK-D-PRO-W`
-
-### Launch sensor abstractor
-Open new terminal:
-
-* `docker exec -it phinix_container bash`
-
-* `cd /home/PHINIX`
-
-* `colcon build --packages-select phinix_sensor_abstractor` # optional, colcon build builds automatically
-
-* `source install/setup.bash`
-
-* `ros2 run phinix_sensor_abstractor phinix_sensor_abstractor_py_exe`
-
-### Launch text detector (Note: works only with Intel GPU)
-Open new terminal:
-
-* `docker exec -it phinix_container bash`
-
-* `cd /home/PHINIX`
-
-* `colcon build --packages-select phinix_text_detector`# optional
-
-* `source install/setup.bash`
-
-* `ros2 run phinix_text_detector phinix_text_detector_py_exe`
-
-### Launch TTS
-Open new terminal (for TTS simulator):
-
-* `docker exec -it phinix_container bash`
-
-* `cd /home/PHINIX`
-
-* `source install/setup.bash`
-
-* `ros2 run phinix_tts_balacoon phinix_tts_simulator_py_exe`  # if simulator is needed
-
-Open new terminal (for TTS node):
-
-* `docker exec -it phinix_container bash`
-
-* `cd /home/PHINIX`
-
-* `source install/setup.bash`
-
-* `ros2 run phinix_tts_balacoon phinix_tts_balacoon_py_exe --ros-args --params-file src/phinix_ui/phinix_tts_balacoon/param/phinix_tts_balacoon.param.yaml`
-
-### Launch RViZ for visualization
-
-Open new terminal (for rviz2)
-
-* `xhost +local:docker`
-
-* `docker exec -it phinix_container bash`
-
-* `source install/setup.bash`
-
-* `rviz2` # add the necessary topics for visualization
-
+``` bash
+xhost +local:docker
+docker exec -it phinix_container bash
+source install/setup.bash
+rviz2
+```

@@ -43,7 +43,7 @@ Go through all the sections in GitHub's official
 [Fork a repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo?tool=webui&platform=linux).
 You should apply the steps outlined therein to fork and setup the
 [ximira-org/PHINIX repository](https://github.com/ximira-org/PHINIX). Next, go
-through [our guide on setting up PHINIX locally for development](docs/setup_local.md)
+through [our guide on setting up PHINIX locally for development](docs/setup_with_docker.md)
 and set up your development environment.
 
 ### Deciding what to work on
