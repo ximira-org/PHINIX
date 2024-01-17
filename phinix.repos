@@ -11,3 +11,7 @@ repositories:
     type: git
     url: git@github.com:ximira-org/phinix_openwakeword.git
     version: main
+  src/phinix_ui/phinix_sound_effects_ui:
+    type: git
+    url: git@github.com:ximira-org/phinix_sound_effects_ui.git
+    version: main
