@@ -83,6 +83,11 @@ def generate_launch_description():
         executable="phinix_sound_effects_ui_py_exe"
     )
 
+    phinix_haptics_ui_node = Node(
+        package="phinix_haptics_ui",
+        executable="phinix_haptics_ui_py_exe"
+    )
+
     ld = [
         oak_ros_node,
         phinix_obstacle_detector_node,
@@ -95,7 +100,8 @@ def generate_launch_description():
         #phinix_face_rec_node,
         #phinix_face_reg_node,
         #phinix_wakeword_node,
-        phinix_sound_effects_ui_node
+        #phinix_sound_effects_ui_node,
+        phinix_haptics_ui_node
     ]
 
     return LaunchDescription(ld)
