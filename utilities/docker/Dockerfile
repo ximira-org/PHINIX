@@ -91,6 +91,10 @@ RUN python3 -m pip install -i https://pypi.fury.io/balacoon/ balacoon-tts
 # install dependencies for sound effects ui
 RUN python3 -m pip install pygame
 
+#install dependencies for haptics ui
+RUN apt-get install python3-pip libglib2.0-dev -y --no-install-recommends
+RUN python3 -m pip install bluepy
+
 # install dependencies for Text detection 
 RUN python3 -m pip install pip install rapidocr-openvinogpu
 
