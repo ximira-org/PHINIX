@@ -88,6 +88,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python3 -m pip install sounddevice 
 RUN python3 -m pip install -i https://pypi.fury.io/balacoon/ balacoon-tts
 
+# install dependencies for sound effects ui
+RUN python3 -m pip install pygame
+
 # install dependencies for Text detection 
 RUN python3 -m pip install pip install rapidocr-openvinogpu
 
