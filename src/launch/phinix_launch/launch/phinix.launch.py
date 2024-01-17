@@ -78,6 +78,10 @@ def generate_launch_description():
         parameters=[LaunchConfiguration('face_rec_node_param_file')],
     )
 
+    phinix_sound_effects_ui_node = Node(
+        package="phinix_sound_effects_ui",
+        executable="phinix_sound_effects_ui_py_exe"
+    )
 
     ld = [
         oak_ros_node,
@@ -90,7 +94,8 @@ def generate_launch_description():
         phinix_sensor_abstractor_node,
         #phinix_face_rec_node,
         #phinix_face_reg_node,
-        #phinix_wakeword_node
+        #phinix_wakeword_node,
+        phinix_sound_effects_ui_node
     ]
 
     return LaunchDescription(ld)
