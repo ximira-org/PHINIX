@@ -78,19 +78,43 @@ def generate_launch_description():
         parameters=[LaunchConfiguration('face_rec_node_param_file')],
     )
 
+    phinix_sound_effects_ui_node = Node(
+        package="phinix_sound_effects_ui",
+        executable="phinix_sound_effects_ui_py_exe"
+    )
+
+    phinix_haptics_ui_node = Node(
+        package="phinix_haptics_ui",
+        executable="phinix_haptics_ui_py_exe"
+    )
+
+    phinix_node_manager_node = Node(
+        package="phinix_node_manager",
+        executable="phinix_node_manager_py_exe"
+    )
+
+    phinix_ui_message_juggler_node = Node(
+        package="phinix_ui_message_juggler",
+        executable="phinix_ui_message_juggler_py_exe"
+    )
+
 
     ld = [
         oak_ros_node,
         phinix_obstacle_detector_node,
         tts_balacoon_param,
-        face_rec__param,
+        #face_rec__param,
         phinix_text_detector_node,
         # phinix_tts_simulator_node,
         phinix_tts_balacoon_node,
         phinix_sensor_abstractor_node,
-        phinix_face_rec_node,
-        phinix_face_reg_node,
-        # phinix_wakeword_node
+        #phinix_face_rec_node,
+        #phinix_face_reg_node,
+        phinix_wakeword_node,
+        phinix_sound_effects_ui_node,
+        phinix_haptics_ui_node,
+        phinix_node_manager_node,
+        phinix_ui_message_juggler_node
     ]
 
     return LaunchDescription(ld)
