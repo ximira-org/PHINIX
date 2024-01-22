@@ -98,6 +98,11 @@ def generate_launch_description():
         executable="phinix_ui_message_juggler_py_exe"
     )
 
+    phinix_obstacle_detector_ui_translator_node = Node(
+        package="phinix_obstacle_detector_ui_translator",
+        executable="phinix_obstacle_detector_ui_translator_py_exe"
+    )
+
 
     ld = [
         oak_ros_node,
@@ -114,7 +119,8 @@ def generate_launch_description():
         phinix_sound_effects_ui_node,
         phinix_haptics_ui_node,
         phinix_node_manager_node,
-        phinix_ui_message_juggler_node
+        phinix_ui_message_juggler_node,
+        phinix_obstacle_detector_ui_translator_node
     ]
 
     return LaunchDescription(ld)

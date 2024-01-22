@@ -28,3 +28,8 @@ repositories:
     type: git
     url: git@github.com:ximira-org/phinix_ui_message_juggler.git
     version: main
+
+  src/phinix_ui/phinix_obstacle_detector_ui_translator:
+    type: git
+    url: git@github.com:ximira-org/phinix_obstacle_detector_ui_translator.git
+    version: main
