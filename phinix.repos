@@ -7,7 +7,7 @@ repositories:
   src/phinix_ui/phinix_tts_balacoon:
     type: git
     url: git@github.com:ximira-org/phinix_tts_balacoon.git
-    version: main
+    version: ben/tts_broadcasts_availability
 
   src/phinix_ui/phinix_openwakeword:
     type: git
@@ -17,7 +17,7 @@ repositories:
   src/phinix_ui/phinix_sound_effects_ui:
     type: git
     url: git@github.com:ximira-org/phinix_sound_effects_ui.git
-    version: main
+    version: ben/integrate_with_ui_message_juggler
 
   src/phinix_ui/phinix_haptics_ui:
     type: git
