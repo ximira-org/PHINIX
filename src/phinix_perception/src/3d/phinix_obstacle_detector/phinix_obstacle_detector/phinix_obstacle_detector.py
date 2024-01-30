@@ -14,9 +14,10 @@ from sensor_msgs.msg import Image
 import cv2 
 
 
-RANGE = 1.2 # feet
+RANGES = [2.5, 3, 4, 2.5, 3, 4, 2.5, 3, 4] # feet
 SIDE_FOV_CROP_RATIO = 0.0
 NO_PTS_TO_BE_AN_OBSTACLE = 30
+AVERAGE_CHANGE_THRESHOLD = -300 #mm
 
 KERNEL_TEXT = """
 __kernel void depthmap_sum_reduction(__global const float* depthmap, __local int* local_sum, __global int* group_sum, int N) 
@@ -97,7 +98,10 @@ TOPIC_DISP_VIS_IMG = "/phinix/vis/disparity"
 TOPIC_OBSTACLE_DETS = "/phinix/obstacle_detector/detections"
 TOPIC_NODE_STATES = "/phinix/node_states"
 
-node_state_index = 4
+node_state_index = 0
+
+#The number of cell depth updates to keep track of
+NUM_CELL_DEPTH_UPDATES = 3
 
 # ====================== OpenCL ==========================
 # Depth map dimentions
@@ -199,7 +203,7 @@ def inference_map_pinned_memory(depthmap_numpy):
 def inference_cpu(depthmap_numpy):
     print("CPU")
     t1 = time.time()
-    range_in_mm = int(RANGE*0.3048*1000) #feet*0.3048*mm
+    #range_in_mm = int(RANGE*0.3048*1000) #feet*0.3048*mm
     print("range is {} mm".format(range_in_mm))
     cpu_sum = ((depthmap_numpy < range_in_mm) & (depthmap_numpy != 0)).sum()
     t2 = time.time()
@@ -234,6 +238,11 @@ class ObstacleDetectionNode(Node):
         self.center_right_cell_coords = None
         self.bottom_right_cell_coords = None
         self.obstacle_presence_list = []
+        #Keep track of average cell depth on a per cell basis
+        self.cell_depth_averages = [[0] * 9] * NUM_CELL_DEPTH_UPDATES
+        #The last index i stored a cell depth at
+        self.cell_depth_index = 0
+
         # Am I active in the node manager
         self.node_active = False
 
@@ -381,9 +390,15 @@ class ObstacleDetectionNode(Node):
 
         grid_np = [top_left, center_left, bottom_left, top_center, center_center, bottom_center, top_right, center_right, bottom_right]
 
+        current_cell_depth_averages = [0] * len(grid_np)
+
         self.obstacle_presence_list = []
-        for cell in grid_np:
+        for index, cell in enumerate(grid_np):
             cell = cell.flatten()
+            
+            #add the average depth of the cell to the list of cell depths
+            current_cell_depth_averages[index] = np.average(cell)
+
             update_threads_size(cell)
 
             # =========== select memory transfer mode ===========
@@ -392,11 +407,24 @@ class ObstacleDetectionNode(Node):
             elif MODE == DeviceMode.GPU_MAP:
                 cell_sum = inference_map_pinned_memory(cell)
             elif MODE == DeviceMode.CPU:
-                cell_sum = inference_cpu(cell)
-            if cell_sum > NO_PTS_TO_BE_AN_OBSTACLE:
+                #cell_sum = inference_cpu(cell)
+                
+                #if the cell depth average is significatly less that it was NUM_DEPTH_UPDATES ago, then it is an obstacle
+                current_cell_depth_average = current_cell_depth_averages[index]
+                prev_cell_depth_average = self.cell_depth_averages[self.cell_depth_index - NUM_CELL_DEPTH_UPDATES][index]
+                self.get_logger().info(str(current_cell_depth_average - prev_cell_depth_average))
+                if current_cell_depth_average - prev_cell_depth_average < AVERAGE_CHANGE_THRESHOLD and current_cell_depth_average < RANGES[index]*0.3048*1000:
+                    cell_sum = NO_PTS_TO_BE_AN_OBSTACLE
+                else:
+                    cell_sum = 0
+            if cell_sum >= NO_PTS_TO_BE_AN_OBSTACLE:
                 self.obstacle_presence_list.append(1)
             else:
                 self.obstacle_presence_list.append(0)
+        
+        self.cell_depth_averages[self.cell_depth_index] = current_cell_depth_averages
+        self.cell_depth_index = (self.cell_depth_index + 1) % NUM_CELL_DEPTH_UPDATES
+
         print("[top_left, center_left, bottom_left, top_center, center_center, bottom_center, top_right, center_right, bottom_right]")
         print(self.obstacle_presence_list)
         print("*" * 40)
