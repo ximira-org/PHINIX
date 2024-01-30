@@ -95,6 +95,10 @@ TOPIC_NAME = "/phinix/depth/image_raw"
 TOPIC_PHINIX_DISPARITY_IMG = "/phinix/disparity/image_raw"
 TOPIC_DISP_VIS_IMG = "/phinix/vis/disparity"
 TOPIC_OBSTACLE_DETS = "/phinix/obstacle_detector/detections"
+TOPIC_NODE_STATES = "/phinix/node_states"
+
+node_state_index = 0
+
 # ====================== OpenCL ==========================
 # Depth map dimentions
 WIDTH = 1920
@@ -212,7 +216,8 @@ class ObstacleDetectionNode(Node):
     def __init__(self):
         super().__init__("depthmap")
         self.subscriber = self.create_subscription(Image, TOPIC_NAME, self.callback, 10)        
-        self.disp_subscriber = self.create_subscription(Image, TOPIC_PHINIX_DISPARITY_IMG, self.disp_callback, 10)        
+        self.disp_subscriber = self.create_subscription(Image, TOPIC_PHINIX_DISPARITY_IMG, self.disp_callback, 10)
+        self.node_state_subscriber = self.create_subscription(Int32MultiArray, TOPIC_NODE_STATES, self.node_state_callback, 10)         
         self.publisher = self.create_publisher(Int32MultiArray, TOPIC_OBSTACLE_DETS, 10)
         self.disp_vis_publisher_ = self.create_publisher(Image, TOPIC_DISP_VIS_IMG, 10)
         self.bridge = CvBridge()
@@ -229,8 +234,14 @@ class ObstacleDetectionNode(Node):
         self.center_right_cell_coords = None
         self.bottom_right_cell_coords = None
         self.obstacle_presence_list = []
+        # Am I active in the node manager
+        self.node_active = False
 
     def callback(self, depthmap_ros_image: Image):
+        #early exit if this node is not enabled in node manager
+        if self.node_active == False:
+            return
+        
         # convert ros image to numpy array depthmap
         self.depthmap = self.bridge.imgmsg_to_cv2(depthmap_ros_image, "16UC1")
         result = self.handle_inference_modes(self.depthmap, side_fov_crop_ratio=SIDE_FOV_CROP_RATIO)
@@ -260,6 +271,10 @@ class ObstacleDetectionNode(Node):
 
     # Imp Note: TODO Jagadish: This logic needs to be changed to topic syncing
     def timer_callback(self):
+        #early exit if this node is not enabled in node manager
+        if self.node_active == False:
+            return
+        
         cells = [self.top_left_cell_coords, self.center_left_cell_coords, self.bottom_left_cell_coords, 
                 self.top_center_cell_coords, self.center_center_cell_coords, self.bottom_center_cell_coords,
                 self.top_right_cell_coords, self.center_right_cell_coords, self.bottom_right_cell_coords]
@@ -278,6 +293,10 @@ class ObstacleDetectionNode(Node):
 
         msg = self.bridge.cv2_to_imgmsg(self.disp_img, "bgr8")
         self.disp_vis_publisher_.publish(msg)
+    
+    #Set node_active to true if node manager so
+    def node_state_callback(self, node_states: Int32MultiArray):
+        self.node_active = node_states.data[node_state_index] == 1
             
     def handle_inference_modes(self, depthmap, side_fov_crop_ratio):
         # =========================== inference on GPU ===========================

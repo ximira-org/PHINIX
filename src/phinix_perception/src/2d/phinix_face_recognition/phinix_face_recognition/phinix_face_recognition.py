@@ -17,6 +17,7 @@ from ament_index_python.packages import get_package_share_directory
 from phinix_perception_msgs.msg import BBoxMsg
 from geometry_msgs.msg import Point
 from std_msgs.msg import String
+from std_msgs.msg import Int32MultiArray
 import message_filters
 
 import cv2
@@ -40,6 +41,9 @@ TOPIC_PHINIX_RAW_IMG = "/phinix/rgb/image_raw"
 TOPIC_VIS_IMG = "/phinix/vis/face_rec"
 TOPIC_FACE_REC_BBOX = "/phinix/module/face_rec/bbox"
 TOPIC_PHINIX_RAW_DEPTH = "/phinix/depth/image_raw"
+TOPIC_NODE_STATES = "/phinix/node_states"
+
+node_state_index = 3
 
 def make_point(x, y, z=0.0):
     pt = Point()
@@ -137,6 +141,7 @@ class PHINIXFaceRecognizer(Node):
         self.bbox_msg = BBoxMsg()
         self.rgb_image_sub = message_filters.Subscriber(self, RosImage, TOPIC_PHINIX_RAW_IMG)
         self.depth_img_sub = message_filters.Subscriber(self, RosImage, TOPIC_PHINIX_RAW_DEPTH)
+        self.node_state_subscriber = self.create_subscription(Int32MultiArray, TOPIC_NODE_STATES, self.node_state_callback, 10)
 
         self._synchronizer = message_filters.ApproximateTimeSynchronizer(
             (self.rgb_image_sub, self.depth_img_sub), 5, 0.01)
@@ -381,6 +386,10 @@ class PHINIXFaceRecognizer(Node):
         return detections
 
     def sync_callback(self, rgb_msg, depth_msg):
+        #early exit if this node is not enabled in node manager
+        if self.node_active == False:
+            return
+        
         img = np.frombuffer(rgb_msg.data, dtype=np.uint8).reshape(rgb_msg.height, rgb_msg.width, -1)
         im_depth = self.bridge.imgmsg_to_cv2(depth_msg, "16UC1")
 
@@ -452,6 +461,10 @@ class PHINIXFaceRecognizer(Node):
             draw_anno(frame,bbox,person_name,person_color,
                         thickness, str(clk_angle), str(depth_dist)[0:4])
         return frame
+
+    #Set node_active to true if node manager so
+    def node_state_callback(self, node_states: Int32MultiArray):
+        self.node_active = node_states.data[node_state_index] == 1
         
 def main(args=None):
     rclpy.init(args=args)

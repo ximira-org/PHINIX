@@ -13,12 +13,16 @@ import message_filters
 import cv2
 import numpy as np
 import rapidocr_openvino as rog
+from std_msgs.msg import Int32MultiArray
 
 VIS = True
 TOPIC_PHINIX_RAW_IMG = "/phinix/rgb/image_raw"
 TOPIC_PHINIX_RAW_DEPTH = "/phinix/depth/image_raw"
 TOPIC_VIS_IMG = "/phinix/vis_image"
 TOPIC_TEXT_REC_BBOX = "/phinix/module/text_rec/bbox"
+TOPIC_NODE_STATES = "/phinix/node_states"
+
+node_state_index = 2
 
 def make_point(x, y, z=0.0):
     pt = Point()
@@ -54,6 +58,10 @@ class PHINIXTextDetector(Node):
         self.bbox_msg = BBoxMsg()
         self.rgb_image_sub = message_filters.Subscriber(self, Image, TOPIC_PHINIX_RAW_IMG)
         self.depth_img_sub = message_filters.Subscriber(self, Image, TOPIC_PHINIX_RAW_DEPTH)
+        self.node_state_subscriber = self.create_subscription(Int32MultiArray, TOPIC_NODE_STATES, self.node_state_callback, 10)
+
+        # Am I active in the node manager
+        self.node_active = False
 
         self._synchronizer = message_filters.ApproximateTimeSynchronizer(
             (self.rgb_image_sub, self.depth_img_sub), 5, 0.01)
@@ -83,6 +91,10 @@ class PHINIXTextDetector(Node):
         self.vis_publisher_.publish(msg)
 
     def sync_callback(self, rgb_msg, depth_msg):
+        #early exit if this node is not enabled in node manager
+        if self.node_active == False:
+            return
+        
         im_rgb = np.frombuffer(rgb_msg.data, dtype=np.uint8).reshape(rgb_msg.height, rgb_msg.width, -1)
         im_depth = self.bridge.imgmsg_to_cv2(depth_msg, "16UC1")
 
@@ -98,6 +110,10 @@ class PHINIXTextDetector(Node):
         self.bbox_msg.header.stamp = rgb_msg.header.stamp
         self.bbox_publisher_.publish(self.bbox_msg)
         self.bbox_msg = BBoxMsg()
+    
+    #Set node_active to true if node manager so
+    def node_state_callback(self, node_states: Int32MultiArray):
+        self.node_active = node_states.data[node_state_index] == 1
 
     def update_bbox_msg(self, img, boxes, txts, depth_frame, 
                                     scores=None, text_score=0.5):
