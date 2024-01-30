@@ -97,7 +97,7 @@ TOPIC_DISP_VIS_IMG = "/phinix/vis/disparity"
 TOPIC_OBSTACLE_DETS = "/phinix/obstacle_detector/detections"
 TOPIC_NODE_STATES = "/phinix/node_states"
 
-node_state_index = 4
+node_state_index = 0
 
 # ====================== OpenCL ==========================
 # Depth map dimentions

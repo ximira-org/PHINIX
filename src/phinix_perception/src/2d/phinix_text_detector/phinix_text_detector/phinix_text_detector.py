@@ -22,7 +22,7 @@ TOPIC_VIS_IMG = "/phinix/vis_image"
 TOPIC_TEXT_REC_BBOX = "/phinix/module/text_rec/bbox"
 TOPIC_NODE_STATES = "/phinix/node_states"
 
-node_state_index = 0
+node_state_index = 2
 
 def make_point(x, y, z=0.0):
     pt = Point()

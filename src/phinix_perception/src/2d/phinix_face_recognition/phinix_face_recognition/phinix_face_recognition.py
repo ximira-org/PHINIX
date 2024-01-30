@@ -43,7 +43,7 @@ TOPIC_FACE_REC_BBOX = "/phinix/module/face_rec/bbox"
 TOPIC_PHINIX_RAW_DEPTH = "/phinix/depth/image_raw"
 TOPIC_NODE_STATES = "/phinix/node_states"
 
-node_state_index = 1
+node_state_index = 3
 
 def make_point(x, y, z=0.0):
     pt = Point()
