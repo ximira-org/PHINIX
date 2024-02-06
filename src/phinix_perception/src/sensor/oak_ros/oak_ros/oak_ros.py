@@ -27,7 +27,7 @@ TOPIC_PHINIX_DISPARITY_IMG = "/oak/disparity/image_raw"
 TOPIC_PHINIX_PREVIEW_IMG = "/phinix/vis/object_det"
 TOPIC_OBJ_DET_BBOX = "/phinix/module/object_det/bbox"
 
-CAM_FPS = 3.0
+CAM_FPS = 15.0
 
 RES_MAP = {
     '800': {'w': 1280, 'h': 800, 'res': dai.MonoCameraProperties.SensorResolution.THE_800_P },
