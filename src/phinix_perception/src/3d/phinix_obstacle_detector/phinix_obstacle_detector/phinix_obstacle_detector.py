@@ -14,10 +14,10 @@ from sensor_msgs.msg import Image
 import cv2 
 
 
-RANGES = [2.5, 3, 4, 2.5, 3, 4, 2.5, 3, 4] # feet
+RANGES = [4, 5, 4, 5, 4, 5] # feet
 SIDE_FOV_CROP_RATIO = 0.0
 NO_PTS_TO_BE_AN_OBSTACLE = 30
-AVERAGE_CHANGE_THRESHOLD = -300 #mm
+AVERAGE_CHANGE_THRESHOLD = -150 #mm
 
 KERNEL_TEXT = """
 __kernel void depthmap_sum_reduction(__global const float* depthmap, __local int* local_sum, __global int* group_sum, int N) 
@@ -101,7 +101,7 @@ TOPIC_NODE_STATES = "/phinix/node_states"
 node_state_index = 0
 
 #The number of cell depth updates to keep track of
-NUM_CELL_DEPTH_UPDATES = 3
+NUM_CELL_DEPTH_UPDATES = 15
 
 # ====================== OpenCL ==========================
 # Depth map dimentions
@@ -229,17 +229,14 @@ class ObstacleDetectionNode(Node):
         self.timer = self.create_timer(self.timer_period, self.timer_callback)
         self.disp_img = np.zeros((720, 1280, 3)).astype(np.uint8)
         self.top_left_cell_coords = None
-        self.center_left_cell_coords = None
         self.bottom_left_cell_coords = None
         self.top_center_cell_coords = None
-        self.center_center_cell_coords = None
         self.bottom_center_cell_coords = None
         self.top_right_cell_coords = None
-        self.center_right_cell_coords = None
         self.bottom_right_cell_coords = None
         self.obstacle_presence_list = []
         #Keep track of average cell depth on a per cell basis
-        self.cell_depth_averages = [[0] * 9] * NUM_CELL_DEPTH_UPDATES
+        self.cell_depth_averages = [[0] * 6] * NUM_CELL_DEPTH_UPDATES
         #The last index i stored a cell depth at
         self.cell_depth_index = 0
 
@@ -268,8 +265,8 @@ class ObstacleDetectionNode(Node):
         
         dim_1 = MultiArrayDimension()
         dim_1.label = "height"
-        dim_1.size = 3
-        dim_1.stride = 3
+        dim_1.size = 2
+        dim_1.stride = 2
         
         msg.layout.dim = [dim_0, dim_1]
         print("========== Result = ", result, " ================")
@@ -284,9 +281,9 @@ class ObstacleDetectionNode(Node):
         if self.node_active == False:
             return
         
-        cells = [self.top_left_cell_coords, self.center_left_cell_coords, self.bottom_left_cell_coords, 
-                self.top_center_cell_coords, self.center_center_cell_coords, self.bottom_center_cell_coords,
-                self.top_right_cell_coords, self.center_right_cell_coords, self.bottom_right_cell_coords]
+        cells = [self.top_left_cell_coords, self.bottom_left_cell_coords, 
+                self.top_center_cell_coords, self.bottom_center_cell_coords,
+                self.top_right_cell_coords, self.bottom_right_cell_coords]
 
         for (cell, obs_present) in zip(cells, self.obstacle_presence_list):
             if cell is not None:
@@ -347,48 +344,36 @@ class ObstacleDetectionNode(Node):
         # Split the grid into cells
         # NOTE: the cells are processed and stored column wise 
         # e.g for left column (top_left, center_left and bottom left) is the order
-        self.top_left_cell_coords = np.array([[0, depthmap_cropped.shape[0]//3],
+        self.top_left_cell_coords = np.array([[0, depthmap_cropped.shape[0]//2],
                                     [0, depthmap_cropped.shape[1]//3]])
-        self.center_left_cell_coords = np.array([[depthmap_cropped.shape[0]//3, 2*depthmap_cropped.shape[0]//3],
+        self.bottom_left_cell_coords= np.array([[depthmap_cropped.shape[0]//2, depthmap_cropped.shape[0]],
                                     [0, depthmap_cropped.shape[1]//3]])
-        self.bottom_left_cell_coords= np.array([[2*depthmap_cropped.shape[0]//3, depthmap_cropped.shape[0]],
-                                    [0, depthmap_cropped.shape[1]//3]])
-        self.top_center_cell_coords = np.array([[0,depthmap_cropped.shape[0]//3],
+        self.top_center_cell_coords = np.array([[0,depthmap_cropped.shape[0]//2],
                                     [depthmap_cropped.shape[1]//3,2*depthmap_cropped.shape[1]//3]])
-        self.center_center_cell_coords = np.array([[depthmap_cropped.shape[0]//3,2*depthmap_cropped.shape[0]//3],
+        self.bottom_center_cell_coords = np.array([[depthmap_cropped.shape[0]//2, depthmap_cropped.shape[0]],
                                     [depthmap_cropped.shape[1]//3,2*depthmap_cropped.shape[1]//3]])
-        self.bottom_center_cell_coords = np.array([[2*depthmap_cropped.shape[0]//3, depthmap_cropped.shape[0]],
-                                    [depthmap_cropped.shape[1]//3,2*depthmap_cropped.shape[1]//3]])
-        self.top_right_cell_coords = np.array([[0,depthmap_cropped.shape[0]//3],
+        self.top_right_cell_coords = np.array([[0,depthmap_cropped.shape[0]//2],
                                     [2*depthmap_cropped.shape[1]//3,depthmap_cropped.shape[1]]])
-        self.center_right_cell_coords = np.array([[depthmap_cropped.shape[0]//3,2*depthmap_cropped.shape[0]//3],
-                                    [2*depthmap_cropped.shape[1]//3, depthmap_cropped.shape[1]]])
-        self.bottom_right_cell_coords = np.array([[2*depthmap_cropped.shape[0]//3, depthmap_cropped.shape[0]],
+        self.bottom_right_cell_coords = np.array([[depthmap_cropped.shape[0]//2, depthmap_cropped.shape[0]],
                                     [2*depthmap_cropped.shape[1]//3,depthmap_cropped.shape[1]]])
 
         top_left = depthmap_cropped[self.top_left_cell_coords[0][0] : self.top_left_cell_coords[0][1], 
                                     self.top_left_cell_coords[1][0]:self.top_left_cell_coords[1][1]]
-        center_left = depthmap_cropped[self.center_left_cell_coords[0][0] : self.center_left_cell_coords[0][1],
-                                    self.center_left_cell_coords[1][0]:self.center_left_cell_coords[1][1]]
         bottom_left = depthmap_cropped[self.bottom_left_cell_coords[0][0] : self.bottom_left_cell_coords[0][1],
                                     self.bottom_left_cell_coords[1][0]:self.bottom_left_cell_coords[1][1]]
 
 
         top_center   = depthmap_cropped[self.top_center_cell_coords[0][0] : self.top_center_cell_coords[0][1], 
                                     self.top_center_cell_coords[1][0] : self.top_center_cell_coords[1][1]]
-        center_center = depthmap_cropped[self.center_center_cell_coords[0][0] : self.center_center_cell_coords[0][1],
-                                    self.center_center_cell_coords[1][0] : self.center_center_cell_coords[1][1]]
         bottom_center  = depthmap_cropped[self.bottom_center_cell_coords[0][0] : self.bottom_center_cell_coords[0][1],
                                     self.bottom_center_cell_coords[1][0] : self.bottom_center_cell_coords[1][1]]
 
         top_right = depthmap_cropped[self.top_right_cell_coords[0][0] : self.top_right_cell_coords[0][1], 
                                     self.top_right_cell_coords[1][0] : self.top_right_cell_coords[1][1]]
-        center_right = depthmap_cropped[self.center_right_cell_coords[0][0] : self.center_right_cell_coords[0][1], 
-                                    self.center_right_cell_coords[1][0] : self.center_right_cell_coords[1][1]]
         bottom_right = depthmap_cropped[self.bottom_right_cell_coords[0][0] : self.bottom_right_cell_coords[0][1], 
                                     self.bottom_right_cell_coords[1][0] : self.bottom_right_cell_coords[1][1]]
 
-        grid_np = [top_left, center_left, bottom_left, top_center, center_center, bottom_center, top_right, center_right, bottom_right]
+        grid_np = [top_left, bottom_left, top_center, bottom_center, top_right, bottom_right]
 
         current_cell_depth_averages = [0] * len(grid_np)
 
@@ -412,7 +397,7 @@ class ObstacleDetectionNode(Node):
                 #if the cell depth average is significatly less that it was NUM_DEPTH_UPDATES ago, then it is an obstacle
                 current_cell_depth_average = current_cell_depth_averages[index]
                 prev_cell_depth_average = self.cell_depth_averages[self.cell_depth_index - NUM_CELL_DEPTH_UPDATES][index]
-                self.get_logger().info(str(current_cell_depth_average - prev_cell_depth_average))
+                #self.get_logger().info(str(current_cell_depth_average - prev_cell_depth_average))
                 if current_cell_depth_average - prev_cell_depth_average < AVERAGE_CHANGE_THRESHOLD and current_cell_depth_average < RANGES[index]*0.3048*1000:
                     cell_sum = NO_PTS_TO_BE_AN_OBSTACLE
                 else:
@@ -425,7 +410,7 @@ class ObstacleDetectionNode(Node):
         self.cell_depth_averages[self.cell_depth_index] = current_cell_depth_averages
         self.cell_depth_index = (self.cell_depth_index + 1) % NUM_CELL_DEPTH_UPDATES
 
-        print("[top_left, center_left, bottom_left, top_center, center_center, bottom_center, top_right, center_right, bottom_right]")
+        print("[top_left, bottom_left, top_center, bottom_center, top_right, bottom_right]")
         print(self.obstacle_presence_list)
         print("*" * 40)
         return self.obstacle_presence_list
