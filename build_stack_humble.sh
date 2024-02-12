@@ -121,6 +121,12 @@ sudo apt-get update && apt-get install -y --no-install-recommends \
 python3 -m pip install openwakeword \
       https://github.com/dscripka/openWakeWord/releases/download/v0.1.1/speexdsp_ns-0.1.2-cp310-cp310-linux_x86_64.whl
 
+# install dependancies for bt connection 
+pyhton3 -m pip install bluepy
+
+# install dependancies for SFX UI
+python3 -m pip install -U pygame --user
+
 cd /home/
 mkdir -p /home/PHINIX
 #COPY ./ /home/PHINIX
