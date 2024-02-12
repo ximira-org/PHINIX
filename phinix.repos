@@ -17,7 +17,7 @@ repositories:
   src/phinix_ui/phinix_sound_effects_ui:
     type: git
     url: git@github.com:ximira-org/phinix_sound_effects_ui.git
-    version: ben/integrate_with_ui_message_juggler
+    version: ben/direct_depth_sfx_ui
 
   src/phinix_ui/phinix_haptics_ui:
     type: git
@@ -27,9 +27,9 @@ repositories:
   src/phinix_ui/phinix_ui_message_juggler:
     type: git
     url: git@github.com:ximira-org/phinix_ui_message_juggler.git
-    version: main
+    version: ben/integrate_with_ui
 
   src/phinix_ui/phinix_obstacle_detector_ui_translator:
     type: git
     url: git@github.com:ximira-org/phinix_obstacle_detector_ui_translator.git
-    version: main
+    version: ben/obs_det_only_six_cells
