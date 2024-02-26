@@ -165,3 +165,4 @@ src/phinix_ui/
 src/manager/
 log/
 install/
+src/phinix_perception/src/2d/phinix_sidewalk_detector/
