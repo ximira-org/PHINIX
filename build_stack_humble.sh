@@ -87,7 +87,6 @@ sudo apt-get update && apt-get install -y --no-install-recommends \
     libportaudio2
 python3 -m pip install sounddevice 
 python3 -m pip install -i https://pypi.fury.io/balacoon/ balacoon-tts
-python3 -m pip install pydub
 
 # install dependencies for Text detection 
 python3 -m pip install pip install rapidocr-openvinogpu
