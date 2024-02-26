@@ -31,7 +31,7 @@ TOPIC_PHINIX_PREVIEW_IMG = "/phinix/vis/object_det"
 TOPIC_OBJ_DET_BBOX = "/phinix/module/object_det/bbox"
 TOPIC_NODE_STATES = "/phinix/node_states"
 
-object_recognition_node_state_index = 5
+object_detection_node_state_index = 5
 
 CAM_FPS = 30.0
 
@@ -171,8 +171,8 @@ class OAKLaunch(Node):
 
     #Set node_active to true if node manager so
     def node_state_callback(self, node_states: Int32MultiArray):
-        self.object_recognition_active = node_states.data[object_recognition_node_state_index] == 1
-        self.get_logger().info(f"object_recognition_active = {self.object_recognition_active}")
+        self.object_recognition_active = node_states.data[object_detection_node_state_index] == 1
+        #self.get_logger().info(f"object_recognition_active = {self.object_recognition_active}")
     
     # Define a function that will run in a separate thread
     def camera_thread_function(self):
@@ -338,7 +338,6 @@ class OAKLaunch(Node):
             color2 = (255, 255, 255)
 
             while True:
-                self.get_logger().info("In camera thread")
                 inDepth = self.qDepth.get()
                 inDisparity = self.qDisp.get()
                 
