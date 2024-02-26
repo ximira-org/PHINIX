@@ -108,6 +108,11 @@ def generate_launch_description():
         executable="phinix_object_detector_ui_py_exe"
     )
 
+    phinix_sidewalk_detector = Node(
+        package="phinix_sidewalk_detector",
+        executable="phinix_sidewalk_detector_py_exe"
+    )
+
 
     ld = [
         oak_ros_node,
@@ -126,7 +131,8 @@ def generate_launch_description():
         phinix_node_manager_node,
         phinix_ui_message_juggler_node,
         #phinix_obstacle_detector_ui_translator_node,
-        phinix_object_detector_ui
+        phinix_object_detector_ui,
+        phinix_sidewalk_detector
     ]
 
     return LaunchDescription(ld)

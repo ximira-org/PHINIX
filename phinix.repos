@@ -22,7 +22,7 @@ repositories:
   src/phinix_ui/phinix_haptics_ui:
     type: git
     url: git@github.com:ximira-org/phinix_haptics_ui.git
-    version: main
+    version: ben/depth_map_based_haptics
     
   src/phinix_ui/phinix_ui_message_juggler:
     type: git
@@ -38,3 +38,8 @@ repositories:
     type: git
     url: git@github.com:ximira-org/phinix_object_detector_ui.git
     version: main
+  
+  src/phinix_perception/src/2d/phinix_sidewalk_detector:
+    type: git
+    url: git@github.com:ximira-org/phinix_sidewalk_detector.git
+    version: ben/path_detector_ui
