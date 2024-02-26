@@ -340,7 +340,8 @@ class OAKLaunch(Node):
             while True:
                 inDepth = self.qDepth.get()
                 inDisparity = self.qDisp.get()
-                
+                inRgb = self.qRgb.get()
+                inFrame = self.qFrames.get()
                 
                 if inDisparity is not None:
                     dis_frame = inDisparity.getCvFrame()
@@ -359,18 +360,6 @@ class OAKLaunch(Node):
                     ros_depth = self.bridge.cv2_to_imgmsg(dep_frame, "16UC1")
                     ros_depth.header.stamp = self.get_clock().now().to_msg()
                     self.depth_publisher_.publish(ros_depth)
-
-                if not self.object_recognition_active:
-                    continue
-                
-                inRgb = self.qRgb.get()
-                inDet = self.qDet.get()
-                inFrame = self.qFrames.get()
-                
-                if inDet is not None:
-                    detections = inDet.detections
-                    counter += 1
-
                 if inRgb is not None:
                     det_frame = inRgb.getCvFrame()
                     cv2.putText(det_frame, "NN fps: {:.2f}".format(counter / (time.monotonic() - startTime)),
@@ -382,6 +371,15 @@ class OAKLaunch(Node):
                     ros_full_Frame = self.bridge.cv2_to_imgmsg(full_frame, "bgr8")
                     ros_full_Frame.header.stamp = self.get_clock().now().to_msg()
                     self.rgb_publisher_.publish(ros_full_Frame)
+
+                if not self.object_recognition_active:
+                    continue
+                
+                inDet = self.qDet.get()
+                
+                if inDet is not None:
+                    detections = inDet.detections
+                    counter += 1
 
                 self.update_bbox_msg(det_frame, detections, dep_frame)
                 self.bbox_msg.header.stamp = self.get_clock().now().to_msg()
