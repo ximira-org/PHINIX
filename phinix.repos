@@ -33,3 +33,8 @@ repositories:
     type: git
     url: git@github.com:ximira-org/phinix_obstacle_detector_ui_translator.git
     version: ben/obs_det_only_six_cells
+
+  src/phinix_ui/phinix_object_detector_ui:
+    type: git
+    url: git@github.com:ximira-org/phinix_object_detector_ui.git
+    version: main

@@ -103,26 +103,30 @@ def generate_launch_description():
         executable="phinix_obstacle_detector_ui_translator_py_exe"
     )
 
+    phinix_object_detector_ui = Node(
+        package="phinix_object_detector_ui",
+        executable="phinix_object_detector_ui_py_exe"
+    )
+
 
     ld = [
         oak_ros_node,
-        phinix_obstacle_detector_node,
+        #phinix_obstacle_detector_node,
         tts_balacoon_param,
-        face_rec__param,
-        phinix_text_detector_node,
+        #face_rec__param,
+        #phinix_text_detector_node,
         #phinix_tts_simulator_node,
         phinix_tts_balacoon_node,
         phinix_sensor_abstractor_node,
-        phinix_face_rec_node,
-        phinix_face_reg_node,
+        #phinix_face_rec_node,
+        #phinix_face_reg_node,
         phinix_wakeword_node,
         phinix_sound_effects_ui_node,
-        phinix_haptics_ui_node,
+        #phinix_haptics_ui_node,
         phinix_node_manager_node,
         phinix_ui_message_juggler_node,
-        phinix_obstacle_detector_ui_translator_node
+        #phinix_obstacle_detector_ui_translator_node,
+        phinix_object_detector_ui
     ]
 
     return LaunchDescription(ld)
-
-
