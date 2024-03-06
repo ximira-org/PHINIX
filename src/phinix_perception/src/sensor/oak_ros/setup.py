@@ -24,7 +24,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "oak_ros_py_exe = oak_ros.oak_ros:main"
+            "oak_ros_py_exe = oak_ros.oak_ros:main",
+            "oak_ros_waist_py_exe = oak_ros.oak_ros_waist:main"
         ],
     },
 )

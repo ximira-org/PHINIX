@@ -21,11 +21,11 @@ import json
 from ament_index_python.packages import get_package_share_directory
 
 VIS = True
-TOPIC_PHINIX_RAW_IMG = "/oak/rgb/image_raw"
-TOPIC_PHINIX_DEPTH_IMG = "/oak/depth/image_raw"
-TOPIC_PHINIX_DISPARITY_IMG = "/oak/disparity/image_raw"
-TOPIC_PHINIX_PREVIEW_IMG = "/phinix/vis/object_det"
-TOPIC_OBJ_DET_BBOX = "/phinix/module/object_det/bbox"
+TOPIC_PHINIX_RAW_IMG = "/oak/rgb/waist/image_raw"
+TOPIC_PHINIX_DEPTH_IMG = "/oak/depth/waist/image_raw"
+TOPIC_PHINIX_DISPARITY_IMG = "/oak/disparity/waist/image_raw"
+TOPIC_PHINIX_PREVIEW_IMG = "/phinix/vis/waist/object_det"
+TOPIC_OBJ_DET_BBOX = "/phinix/module/waist/object_det/bbox"
 
 CAM_FPS = 20.0
 
@@ -131,7 +131,8 @@ class OAKLaunch(Node):
         self.resolution = RES_MAP['400']
         self.median = MEDIAN_MAP["7x7"]
         # self.device_info = dai.DeviceInfo("18443010A100870E00") # MXID
-        self.device_info = dai.DeviceInfo("14442C105109F1D000") # MXID
+        # self.device_info = dai.DeviceInfo("14442C105109F1D000") # MXID
+        self.device_info = dai.DeviceInfo("18443010A100870E00") # MXID
         self.pipeline = dai.Pipeline()
         # self.device = dai.Device(self.pipeline, self.device_info)
         # self.device = dai.Device()

@@ -11,6 +11,10 @@ topic_mappings_type = {
 "/oak/rgb/image_raw" : ["/phinix/rgb/image_raw", Image] ,
 "/oak/depth/image_raw" : ["/phinix/depth/image_raw", Image] ,
 "/oak/disparity/image_raw" : ["/phinix/disparity/image_raw", Image] ,
+"/oak/depth/waist/image_raw" : ["/phinix/depth/waist/image_raw", Image] ,
+"/oak/rgb/waist/image_raw" : ["/phinix/rgb/waist/image_raw", Image] ,
+"/oak/depth/waist/image_raw" : ["/phinix/depth/waist/image_raw", Image] ,
+"/oak/disparity/waist/image_raw" : ["/phinix/disparity/waist/image_raw", Image] ,
 }
 
 class NoveSensorAbstractorNode(Node):

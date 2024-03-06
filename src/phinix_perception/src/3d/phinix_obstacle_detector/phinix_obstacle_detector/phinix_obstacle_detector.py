@@ -91,10 +91,10 @@ MODE = DeviceMode.CPU
 GRID_MODE = GridMode.GRID
 # =============================================================
 
-TOPIC_NAME = "/phinix/depth/image_raw"
-TOPIC_PHINIX_DISPARITY_IMG = "/phinix/disparity/image_raw"
-TOPIC_DISP_VIS_IMG = "/phinix/vis/disparity"
-TOPIC_OBSTACLE_DETS = "/phinix/obstacle_detector/detections"
+TOPIC_NAME = "/input/depth/image_raw"
+TOPIC_PHINIX_DISPARITY_IMG = "/input/disparity/image_raw"
+TOPIC_DISP_VIS_IMG = "/output/vis/disparity"
+TOPIC_OBSTACLE_DETS = "/output/obstacle_detector/detections"
 # ====================== OpenCL ==========================
 # Depth map dimentions
 WIDTH = 1920
@@ -277,6 +277,8 @@ class ObstacleDetectionNode(Node):
                     cv2.circle(self.disp_img, (marker_x, marker_y), radius=15, color=[255,0,255], thickness=2)
 
         msg = self.bridge.cv2_to_imgmsg(self.disp_img, "bgr8")
+        # cv2.imshow("disp", self.disp_img)
+        # cv2.waitKey(1)
         self.disp_vis_publisher_.publish(msg)
             
     def handle_inference_modes(self, depthmap, side_fov_crop_ratio):

@@ -33,10 +33,32 @@ def generate_launch_description():
         package="oak_ros",
         executable="oak_ros_py_exe"
     )
+    
+    oak_ros_waist_node = Node(
+        package="oak_ros",
+        executable="oak_ros_waist_py_exe"
+    )
 
     phinix_obstacle_detector_node = Node(
         package="phinix_obstacle_detector",
-        executable="phinix_obstacle_detector_py_exe"
+        executable="phinix_obstacle_detector_py_exe",
+        remappings = [
+            ("/input/depth/image_raw", "/phinix/depth/image_raw"),
+            ('/input/disparity/image_raw', '/phinix/disparity/image_raw'),
+            ('/output/obstacle_detector/detections', '/phinix/obstacle_detector/detections'),
+            ('/output/vis/disparity', '/phinix/vis/disparity')
+        ]
+    )
+
+    phinix_waist_obstacle_detector_node = Node(
+        package="phinix_obstacle_detector",
+        executable="phinix_obstacle_detector_py_exe",
+        remappings=[
+                ("/input/depth/image_raw", "/phinix/depth/waist/image_raw"),
+                ('/input/disparity/image_raw', '/phinix/disparity/waist/image_raw'),
+                ('/output/obstacle_detector/detections', '/phinix/obstacle_detector/waist/detections'),
+                ('/output/vis/disparity', '/phinix/vis/waist/disparity')
+            ]
     )
 
     phinix_sensor_abstractor_node = Node(
@@ -81,7 +103,9 @@ def generate_launch_description():
 
     ld = [
         oak_ros_node,
+        oak_ros_waist_node,
         phinix_obstacle_detector_node,
+        phinix_waist_obstacle_detector_node,
         tts_balacoon_param,
         face_rec__param,
         phinix_text_detector_node,
@@ -89,7 +113,7 @@ def generate_launch_description():
         phinix_tts_balacoon_node,
         phinix_sensor_abstractor_node,
         phinix_face_rec_node,
-        phinix_face_reg_node,
+        # phinix_face_reg_node,
         # phinix_wakeword_node
     ]
 
