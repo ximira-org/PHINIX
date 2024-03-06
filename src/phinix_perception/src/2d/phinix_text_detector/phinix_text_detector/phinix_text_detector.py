@@ -12,8 +12,10 @@ import message_filters
 
 import cv2
 import numpy as np
-import rapidocr_openvino as rog
+import rapidocr_openvinogpu as rog
 from std_msgs.msg import Int32MultiArray
+
+
 
 
 VIS = True
@@ -24,6 +26,7 @@ TOPIC_TEXT_REC_BBOX = "/phinix/module/text_rec/bbox"
 TOPIC_NODE_STATES = "/phinix/node_states"
 
 node_state_index = 2
+TEXT_DETECTOR_SKIP_EVERY = 3
 
 def make_point(x, y, z=0.0):
     pt = Point()
@@ -69,6 +72,8 @@ class PHINIXTextDetector(Node):
         self._synchronizer.registerCallback(self.sync_callback)
         self.get_logger().info("Text Detector Node is ready")
 
+        self.skip_every = TEXT_DETECTOR_SKIP_EVERY
+
     def draw_and_publish(self, img, boxes, txts, scores=None, text_score=0.5):
         
         img_resized = img#cv2.resize(img, (960, 544))
@@ -93,12 +98,15 @@ class PHINIXTextDetector(Node):
         self.vis_publisher_.publish(msg)
 
     def sync_callback(self, rgb_msg, depth_msg):
-        self.get_logger().info("sync_callback")
+        #self.get_logger().info("sync_callback")
         #early exit if this node is not enabled in node manager
         if self.node_active == False:
             return
         
+        self.get_logger().info(str(rgb_msg.height) + ", " + str(rgb_msg.width))
+        self.get_logger().info("sync_callback")
         im_rgb = np.frombuffer(rgb_msg.data, dtype=np.uint8).reshape(rgb_msg.height, rgb_msg.width, -1)
+        #im_rgb = np.frombuffer(rgb_msg.data, dtype=np.uint8).reshape(544, 960, -1)
         im_depth = self.bridge.imgmsg_to_cv2(depth_msg, "16UC1")
 
         result, elapse_list = self.rapid_ocr(im_rgb)

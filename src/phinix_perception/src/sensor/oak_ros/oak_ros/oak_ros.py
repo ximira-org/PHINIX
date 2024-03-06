@@ -32,6 +32,8 @@ TOPIC_OBJ_DET_BBOX = "/phinix/module/object_det/bbox"
 TOPIC_NODE_STATES = "/phinix/node_states"
 
 object_detection_node_state_index = 5
+text_detection_node_state_index = 2
+path_detection_node_state_index = 1
 
 CAM_FPS = 16.0
 
@@ -171,12 +173,16 @@ class OAKLaunch(Node):
 
     #Set node_active to true if node manager so
     def node_state_callback(self, node_states: Int32MultiArray):
-        self.object_recognition_active = node_states.data[object_detection_node_state_index] == 1
-        #self.get_logger().info(f"object_recognition_active = {self.object_recognition_active}")
+        self.object_detection_active = node_states.data[object_detection_node_state_index] == 1
+        self.text_detection_active = node_states.data[text_detection_node_state_index] == 1
+        self.path_detection_active = node_states.data[path_detection_node_state_index] == 1
+        #self.get_logger().info(f"object_detection_active = {self.object_detection_active}")
     
     # Define a function that will run in a separate thread
     def camera_thread_function(self):
-        self.object_recognition_active = False
+        self.object_detection_active = False
+        self.text_detection_active = False
+        self.path_detection_active = False
 
         self.rgb_publisher_ = self.create_publisher(Image, TOPIC_PHINIX_RAW_IMG, 10)
         self.depth_publisher_ = self.create_publisher(Image, TOPIC_PHINIX_DEPTH_IMG, 10)
@@ -359,7 +365,7 @@ class OAKLaunch(Node):
                     ros_depth = self.bridge.cv2_to_imgmsg(dep_frame, "16UC1")
                     ros_depth.header.stamp = self.get_clock().now().to_msg()
                     self.depth_publisher_.publish(ros_depth)
-                    self.get_logger().info(f"publish depth")
+                    #self.get_logger().info(f"publish depth")
                 if inRgb is not None:
                     det_frame = inRgb.getCvFrame()
                     cv2.putText(det_frame, "NN fps: {:.2f}".format(counter / (time.monotonic() - startTime)),
@@ -367,13 +373,13 @@ class OAKLaunch(Node):
             
                 if inFrame is not None:
                     full_frame = inFrame.getCvFrame()
-                    full_frame = cv2.resize(full_frame, (640, 352))
+                    full_frame = cv2.resize(full_frame, (960, 544))
                     ros_full_Frame = self.bridge.cv2_to_imgmsg(full_frame, "bgr8")
                     ros_full_Frame.header.stamp = self.get_clock().now().to_msg()
                     self.rgb_publisher_.publish(ros_full_Frame)
-                    self.get_logger().info(f"publish rgb")
+                    #self.get_logger().info(f"publish rgb")
 
-                if not self.object_recognition_active:
+                if not self.object_detection_active:
                     continue
                 
                 inDet = self.qDet.get()
