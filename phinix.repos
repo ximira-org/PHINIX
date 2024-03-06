@@ -39,6 +39,11 @@ repositories:
     url: git@github.com:ximira-org/phinix_object_detector_ui.git
     version: main
   
+  src/phinix_ui/phinix_text_detector_ui:
+    type: git
+    url: git@github.com:ximira-org/phinix_text_detector_ui.git
+    version: main
+  
   src/phinix_perception/src/2d/phinix_sidewalk_detector:
     type: git
     url: git@github.com:ximira-org/phinix_sidewalk_detector.git

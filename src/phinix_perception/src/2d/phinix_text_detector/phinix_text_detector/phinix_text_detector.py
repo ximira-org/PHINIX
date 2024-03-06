@@ -15,6 +15,7 @@ import numpy as np
 import rapidocr_openvino as rog
 from std_msgs.msg import Int32MultiArray
 
+
 VIS = True
 TOPIC_PHINIX_RAW_IMG = "/phinix/rgb/image_raw"
 TOPIC_PHINIX_RAW_DEPTH = "/phinix/depth/image_raw"
@@ -64,8 +65,9 @@ class PHINIXTextDetector(Node):
         self.node_active = False
 
         self._synchronizer = message_filters.ApproximateTimeSynchronizer(
-            (self.rgb_image_sub, self.depth_img_sub), 5, 0.01)
+            (self.rgb_image_sub, self.depth_img_sub), 5, 0.1)
         self._synchronizer.registerCallback(self.sync_callback)
+        self.get_logger().info("Text Detector Node is ready")
 
     def draw_and_publish(self, img, boxes, txts, scores=None, text_score=0.5):
         
@@ -91,6 +93,7 @@ class PHINIXTextDetector(Node):
         self.vis_publisher_.publish(msg)
 
     def sync_callback(self, rgb_msg, depth_msg):
+        self.get_logger().info("sync_callback")
         #early exit if this node is not enabled in node manager
         if self.node_active == False:
             return

@@ -33,7 +33,7 @@ TOPIC_NODE_STATES = "/phinix/node_states"
 
 object_detection_node_state_index = 5
 
-CAM_FPS = 30.0
+CAM_FPS = 16.0
 
 RES_MAP = {
     '800': {'w': 1280, 'h': 800, 'res': dai.MonoCameraProperties.SensorResolution.THE_800_P },
@@ -342,7 +342,6 @@ class OAKLaunch(Node):
                 inDisparity = self.qDisp.get()
                 inRgb = self.qRgb.get()
                 inFrame = self.qFrames.get()
-                
                 if inDisparity is not None:
                     dis_frame = inDisparity.getCvFrame()
                     maxDisp = self.stereo.initialConfig.getMaxDisparity()
@@ -360,6 +359,7 @@ class OAKLaunch(Node):
                     ros_depth = self.bridge.cv2_to_imgmsg(dep_frame, "16UC1")
                     ros_depth.header.stamp = self.get_clock().now().to_msg()
                     self.depth_publisher_.publish(ros_depth)
+                    self.get_logger().info(f"publish depth")
                 if inRgb is not None:
                     det_frame = inRgb.getCvFrame()
                     cv2.putText(det_frame, "NN fps: {:.2f}".format(counter / (time.monotonic() - startTime)),
@@ -371,6 +371,7 @@ class OAKLaunch(Node):
                     ros_full_Frame = self.bridge.cv2_to_imgmsg(full_frame, "bgr8")
                     ros_full_Frame.header.stamp = self.get_clock().now().to_msg()
                     self.rgb_publisher_.publish(ros_full_Frame)
+                    self.get_logger().info(f"publish rgb")
 
                 if not self.object_recognition_active:
                     continue
