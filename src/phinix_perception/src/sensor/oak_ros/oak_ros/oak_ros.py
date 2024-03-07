@@ -178,7 +178,6 @@ class OAKLaunch(Node):
         self.object_detection_active = node_states.data[object_detection_node_state_index] == 1
         self.text_detection_active = node_states.data[text_detection_node_state_index] == 1
         self.path_detection_active = node_states.data[path_detection_node_state_index] == 1
-        self.get_logger().info(f"object_detection_active = {self.object_detection_active}")
     
     # Define a function that will run in a separate thread
     def camera_thread_function(self):
@@ -375,7 +374,6 @@ class OAKLaunch(Node):
                         continue
                     self.object_detection_skip_count = 0
 
-                    self.get_logger().info("object detection active")
                     inDet = self.qDet.get()
                     inRgb = self.qRgb.get()
                     
