@@ -37,6 +37,8 @@ path_detection_node_state_index = 1
 
 CAM_FPS = 16.0
 
+OBJECT_DETECTION_SKIP_EVERY = 4
+
 RES_MAP = {
     '800': {'w': 1280, 'h': 800, 'res': dai.MonoCameraProperties.SensorResolution.THE_800_P },
     '720': {'w': 1280, 'h': 720, 'res': dai.MonoCameraProperties.SensorResolution.THE_720_P },
@@ -176,7 +178,7 @@ class OAKLaunch(Node):
         self.object_detection_active = node_states.data[object_detection_node_state_index] == 1
         self.text_detection_active = node_states.data[text_detection_node_state_index] == 1
         self.path_detection_active = node_states.data[path_detection_node_state_index] == 1
-        #self.get_logger().info(f"object_detection_active = {self.object_detection_active}")
+        self.get_logger().info(f"object_detection_active = {self.object_detection_active}")
     
     # Define a function that will run in a separate thread
     def camera_thread_function(self):
@@ -315,6 +317,8 @@ class OAKLaunch(Node):
         self.stereo.outConfig.link(self.xoutStereoCfg.input)
         self.bbox_msg = BBoxMsg()
 
+        self.object_detection_skip_count = 0
+
         with self.device:
             self.device.startPipeline(self.pipeline)
             self.device.setIrLaserDotProjectorBrightness(850) # in mA, 0..1200
@@ -345,9 +349,58 @@ class OAKLaunch(Node):
 
             while True:
                 inDepth = self.qDepth.get()
+                
+                if inDepth is not None:
+                    dep_frame = inDepth.getFrame()
+                    dep_frame = dep_frame.astype(np.uint16)
+                    ros_depth = self.bridge.cv2_to_imgmsg(dep_frame, "16UC1")
+                    ros_depth.header.stamp = self.get_clock().now().to_msg()
+                    self.depth_publisher_.publish(ros_depth)
+                
+                if self.text_detection_active or self.path_detection_active:
+
+                    inFrame = self.qFrames.get()
+                
+                    if inFrame is not None:
+                        full_frame = inFrame.getCvFrame()
+                        full_frame = cv2.resize(full_frame, (960, 544))
+                        ros_full_Frame = self.bridge.cv2_to_imgmsg(full_frame, "bgr8")
+                        ros_full_Frame.header.stamp = self.get_clock().now().to_msg()
+                        self.rgb_publisher_.publish(ros_full_Frame)
+
+                if self.object_detection_active:
+
+                    if self.object_detection_skip_count < OBJECT_DETECTION_SKIP_EVERY:
+                        self.object_detection_skip_count += 1
+                        continue
+                    self.object_detection_skip_count = 0
+
+                    self.get_logger().info("object detection active")
+                    inDet = self.qDet.get()
+                    inRgb = self.qRgb.get()
+                    
+                    if inDet is not None:
+                        detections = inDet.detections
+                        counter += 1
+
+                    if inRgb is not None:
+                        det_frame = inRgb.getCvFrame()
+                        cv2.putText(det_frame, "NN fps: {:.2f}".format(counter / (time.monotonic() - startTime)),
+                                    (2, det_frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4, color2)
+
+                    self.update_bbox_msg(det_frame, detections, dep_frame)
+                    self.bbox_msg.header.stamp = self.get_clock().now().to_msg()
+                    self.bbox_publisher_.publish(self.bbox_msg)
+                    det_frame = self.displayFrame("rgb", det_frame, detections)
+                    # print("preview shape = ", frame.shape)
+                    ros_preview = self.bridge.cv2_to_imgmsg(det_frame, "bgr8")
+                    ros_preview.header.stamp = self.get_clock().now().to_msg()
+                    self.preview_publisher_.publish(ros_preview)
+                    self.bbox_msg = BBoxMsg()
+
+                '''
                 inDisparity = self.qDisp.get()
-                inRgb = self.qRgb.get()
-                inFrame = self.qFrames.get()
+                
                 if inDisparity is not None:
                     dis_frame = inDisparity.getCvFrame()
                     maxDisp = self.stereo.initialConfig.getMaxDisparity()
@@ -359,44 +412,7 @@ class OAKLaunch(Node):
                     ros_disparity = self.bridge.cv2_to_imgmsg(dis_frame, "bgr8")
                     ros_disparity.header.stamp = self.get_clock().now().to_msg()
                     self.disparity_publisher_.publish(ros_disparity)
-                if inDepth is not None:
-                    dep_frame = inDepth.getFrame()
-                    dep_frame = dep_frame.astype(np.uint16)
-                    ros_depth = self.bridge.cv2_to_imgmsg(dep_frame, "16UC1")
-                    ros_depth.header.stamp = self.get_clock().now().to_msg()
-                    self.depth_publisher_.publish(ros_depth)
-                    #self.get_logger().info(f"publish depth")
-                if inRgb is not None:
-                    det_frame = inRgb.getCvFrame()
-                    cv2.putText(det_frame, "NN fps: {:.2f}".format(counter / (time.monotonic() - startTime)),
-                                (2, det_frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4, color2)
-            
-                if inFrame is not None:
-                    full_frame = inFrame.getCvFrame()
-                    full_frame = cv2.resize(full_frame, (960, 544))
-                    ros_full_Frame = self.bridge.cv2_to_imgmsg(full_frame, "bgr8")
-                    ros_full_Frame.header.stamp = self.get_clock().now().to_msg()
-                    self.rgb_publisher_.publish(ros_full_Frame)
-                    #self.get_logger().info(f"publish rgb")
-
-                if not self.object_detection_active:
-                    continue
-                
-                inDet = self.qDet.get()
-                
-                if inDet is not None:
-                    detections = inDet.detections
-                    counter += 1
-
-                self.update_bbox_msg(det_frame, detections, dep_frame)
-                self.bbox_msg.header.stamp = self.get_clock().now().to_msg()
-                self.bbox_publisher_.publish(self.bbox_msg)
-                det_frame = self.displayFrame("rgb", det_frame, detections)
-                # print("preview shape = ", frame.shape)
-                ros_preview = self.bridge.cv2_to_imgmsg(det_frame, "bgr8")
-                ros_preview.header.stamp = self.get_clock().now().to_msg()
-                self.preview_publisher_.publish(ros_preview)
-                self.bbox_msg = BBoxMsg()
+                '''
         
 def main(args=None):
     rclpy.init(args=args)

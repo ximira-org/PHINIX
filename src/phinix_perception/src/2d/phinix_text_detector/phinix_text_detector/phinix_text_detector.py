@@ -26,7 +26,7 @@ TOPIC_TEXT_REC_BBOX = "/phinix/module/text_rec/bbox"
 TOPIC_NODE_STATES = "/phinix/node_states"
 
 node_state_index = 2
-TEXT_DETECTOR_SKIP_EVERY = 3
+TEXT_DETECTOR_SKIP_EVERY = 4
 
 def make_point(x, y, z=0.0):
     pt = Point()
@@ -73,6 +73,7 @@ class PHINIXTextDetector(Node):
         self.get_logger().info("Text Detector Node is ready")
 
         self.skip_every = TEXT_DETECTOR_SKIP_EVERY
+        self.skip_counter = 0
 
     def draw_and_publish(self, img, boxes, txts, scores=None, text_score=0.5):
         
@@ -102,6 +103,11 @@ class PHINIXTextDetector(Node):
         #early exit if this node is not enabled in node manager
         if self.node_active == False:
             return
+        
+        if self.skip_counter < self.skip_every:
+            self.skip_counter += 1
+            return
+        self.skip_counter = 0
         
         self.get_logger().info(str(rgb_msg.height) + ", " + str(rgb_msg.width))
         self.get_logger().info("sync_callback")
