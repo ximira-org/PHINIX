@@ -34,6 +34,7 @@ TOPIC_NODE_STATES = "/phinix/node_states"
 object_detection_node_state_index = 5
 text_detection_node_state_index = 2
 path_detection_node_state_index = 1
+face_regestration_node_state_index = 4
 
 CAM_FPS = 16.0
 
@@ -178,7 +179,9 @@ class OAKLaunch(Node):
         self.object_detection_active = node_states.data[object_detection_node_state_index] == 1
         self.text_detection_active = node_states.data[text_detection_node_state_index] == 1
         self.path_detection_active = node_states.data[path_detection_node_state_index] == 1
-    
+        self.face_regestration_active = node_states.data[face_regestration_node_state_index] == 1
+
+
     # Define a function that will run in a separate thread
     def camera_thread_function(self):
         self.object_detection_active = False
@@ -356,7 +359,7 @@ class OAKLaunch(Node):
                     ros_depth.header.stamp = self.get_clock().now().to_msg()
                     self.depth_publisher_.publish(ros_depth)
                 
-                if self.text_detection_active or self.path_detection_active:
+                if self.text_detection_active or self.path_detection_active or self.face_regestration_active:
 
                     inFrame = self.qFrames.get()
                 
@@ -366,6 +369,7 @@ class OAKLaunch(Node):
                         ros_full_Frame = self.bridge.cv2_to_imgmsg(full_frame, "bgr8")
                         ros_full_Frame.header.stamp = self.get_clock().now().to_msg()
                         self.rgb_publisher_.publish(ros_full_Frame)
+                        self.get_logger().info('Published an image')
 
                 if self.object_detection_active:
 
