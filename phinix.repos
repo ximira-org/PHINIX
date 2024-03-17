@@ -12,12 +12,12 @@ repositories:
   src/phinix_ui/phinix_openwakeword:
     type: git
     url: git@github.com:ximira-org/phinix_openwakeword.git
-    version: ben/connect_to_node_manager
+    version: ben/add_path_det_and_ground_level_wakewords
 
   src/phinix_ui/phinix_sound_effects_ui:
     type: git
     url: git@github.com:ximira-org/phinix_sound_effects_ui.git
-    version: ben/direct_depth_sfx_ui
+    version: ben/sidewalk_detection_ui
 
   src/phinix_ui/phinix_haptics_ui:
     type: git
