@@ -148,6 +148,7 @@ def generate_launch_description():
         phinix_object_detector_ui,
         phinix_text_detector_ui
         
+        
     ]
 
     return LaunchDescription(ld)
