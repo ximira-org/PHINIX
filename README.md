@@ -65,4 +65,4 @@ Here are a few ways you can get involved:
 
 ## License
 
-TBD
+[GNU Affero General Public License Version 3](LICENSE)
