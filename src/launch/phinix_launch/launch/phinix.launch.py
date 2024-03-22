@@ -11,6 +11,15 @@ from launch_ros.actions import  Node
 
 def generate_launch_description():
 
+    launch_pkg_prefix = get_package_share_directory('phinix_launch')
+    launch_param_file = os.path.join(
+        launch_pkg_prefix, 'param/phinix.param.yaml')
+    launch_param = DeclareLaunchArgument(
+        'launch_param_file',
+        default_value=launch_param_file,
+        description='launch settings'
+    )
+
     tts_balacoon_pkg_prefix = get_package_share_directory('phinix_tts_balacoon')
     tts_balacoon_node_param_file = os.path.join(
         tts_balacoon_pkg_prefix, 'param/phinix_tts_balacoon.param.yaml')
@@ -90,7 +99,8 @@ def generate_launch_description():
 
     phinix_node_manager_node = Node(
         package="phinix_node_manager",
-        executable="phinix_node_manager_py_exe"
+        executable="phinix_node_manager_py_exe",
+        parameters=[LaunchConfiguration('launch_param_file')],
     )
 
     phinix_ui_message_juggler_node = Node(
@@ -120,6 +130,7 @@ def generate_launch_description():
 
 
     ld = [
+        launch_param,
         oak_ros_node,
         phinix_sensor_abstractor_node,
 
