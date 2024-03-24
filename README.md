@@ -16,6 +16,8 @@ develop an innovative, wearable system that gives blind users more freedom to
 participate in all aspects of society. To learn more about our story, please
 visit [Ximira's About Us page](https://ximira.org/about).
 
+## PHINIX in action
+
 ### Pathway Recognition
 
 https://github.com/ximira-org/PHINIX/assets/7251823/17b28960-0980-4bcc-973a-15c4daee4c09
