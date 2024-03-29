@@ -160,5 +160,6 @@ cython_debug/
 #.idea/
 
 # ignore NOVA external repos, log and install  drs
+src/external/
 log/
 install/
