@@ -1,0 +1,47 @@
+"Obstacle detected Top Right", 2, 0, 1612314896028762984
+"Obstacle detected Top Left", 2, 1, 1612314880123456789
+"Obstacle detected Bottom Center", 2, 0, 1612314899111111111
+"Obstacle detected Middle Center", 2, 1, 1612314880111111111
+"Obstacle detected Bottom Left", 2, 0, 1612314906123456789
+"Obstacle detected Middle Right", 2, 1, 1612314880211111111
+"Obstacle detected Top Center", 2, 0, 1612314913123456789
+"Obstacle detected Bottom Left", 2, 1, 1612314880311111111
+"Obstacle detected Bottom Right", 2, 0, 1612314920123456789
+"Obstacle detected Middle Left", 2, 1, 1612314880411111111
+"Person detected in Right: Ben", 4, 0, 1612314927123456789
+"Person detected in Left: Breean", 4, 1, 1612314880511111111
+"Person detected in Middle: Jagadish", 4, 0, 1612314934123456789
+"Battery level low: 20%", 3, 1, 1612314880611111111
+"Battery level critical: 10%", 3, 0, 1612314941123456789
+"Battery critical: Mira shutting down", 3, 1, 1612314880711111111
+"Person detected in Middle: Jagadish", 4, 0, 1612314948123456789
+"Repeat that Mira", 5, 1, 1612314880811111111
+"Repeat statement", 5, 0, 1612314956123456789
+"System Settings", 5, 1, 1612314880911111111
+"Emergency", 5, 0, 1612314963123456789
+"Memorize Person: Mehrad", 5, 1, 1612314880101111111
+"Memorize Person: Jessica", 5, 0, 1612314970123456789
+"Set Volume: 2", 5, 1, 1612314880111111111
+"Set Volume: 1", 5, 0, 1612314977123456789
+"Set Volume: 3", 5, 1, 1612314880121111111
+"Set Quiet Mode", 5, 0, 1612314984123456789
+"Battery Level", 5, 1, 1612314880131111111
+"Enable Haptics", 5, 0, 1612314991123456789
+"Disable Haptics", 5, 1, 1612314880141111111
+"Save location as: home", 5, 0, 1612314998123456789
+"Save location as: work", 5, 1, 1612314880151111111
+"Save location as: school", 5, 0, 1612315005123456789
+"Save location as: Ben house", 5, 1, 1612314880161111111
+"Save location as: Breeans coffee", 5, 0, 1612315012123456789
+"Save location as: Jagadish office", 5, 1, 1612314880171111111
+"Start navigation to: home", 5, 0, 1612315019123456789
+"Start navigation to: work", 5, 1, 1612314880181111111
+"Start navigation to: school", 5, 0, 1612315026123456789
+"Start navigation to: Ben house", 5, 1, 1612314880191111111
+"Start navigation to: Breeans coffee", 5, 0, 1612315033123456789
+"Start navigation to: Jagadish office", 5, 1, 1612314880201111111
+"Recite text", 5, 0, 1612314880211111111
+"Describe my surroundings", 5, 1, 1612314880221111111
+"Describe", 5, 0, 1612315047123456789
+"Configure settings", 5, 1, 1612314880231111111
+"System settings", 5, 0, 1612315054123456789
