@@ -1,0 +1,47 @@
+"Obstacle detected Top Right", 2, 12:34:56
+"Obstacle detected Top Left", 2, 12:34:57
+"Obstacle detected Bottom Center", 2, 12:34:59
+"Obstacle detected Middle Center", 2, 12:35:02
+"Obstacle detected Bottom Left", 2, 12:35:06
+"Obstacle detected Middle Right", 2, 12:35:09
+"Obstacle detected Top Center", 2, 12:35:13
+"Obstacle detected Bottom Left", 2, 12:35:16
+"Obstacle detected Bottom Right", 2, 12:35:20
+"Obstacle detected Middle Left", 2, 12:35:23
+"Person detected in Right: Ben", 4, 12:35:27
+"Person detected in Left: Breean", 4, 12:35:31
+"Person detected in Middle: Jagadish", 4, 12:35:34
+"Battery level low: 20%", 3, 12:35:38
+"Battery level critical: 10%", 3, 12:35:41
+"Battery critical: Mira shutting down", 3, 12:35:45
+"Person detected in Middle: Jagadish", 4, 12:35:48
+"Repeat that Mira", 5, 12:35:52
+"Repeat statement", 5, 12:35:56
+"System Settings", 5, 12:35:59
+"Emergency", 5, 12:36:03
+"Memorize Person: Mehrad", 5, 12:36:06
+"Memorize Person: Jessica", 5, 12:36:10
+"Set Volume: 2", 5, 12:36:13
+"Set Volume: 1", 5, 12:36:17
+"Set Volume: 3", 5, 12:36:20
+"Set Quiet Mode", 5, 12:36:24
+"Battery Level", 5, 12:36:27
+"Enable Haptics", 5, 12:36:31
+"Disable Haptics", 5, 12:36:34
+"Save location as: home", 5, 12:36:38
+"Save location as: work", 5, 12:36:41
+"Save location as: school", 5, 12:36:45
+"Save location as: Ben house", 5, 12:36:48
+"Save location as: Breeans coffee", 5, 12:36:52
+"Save location as: Jagadish office", 5, 12:36:55
+"Start navigation to: home", 5, 12:36:59
+"Start navigation to: work", 5, 12:37:02
+"Start navigation to: school", 5, 12:37:06
+"Start navigation to: Ben house", 5, 12:37:09
+"Start navigation to: Breeans coffee", 5, 12:37:13
+"Start navigation to: Jagadish office", 5, 12:37:16
+"Recite text", 5, 12:37:20
+"Describe my surroundings", 5, 12:37:23
+"Describe", 5, 12:37:27
+"Configure settings", 5, 12:37:30
+"System settings", 5, 12:37:34

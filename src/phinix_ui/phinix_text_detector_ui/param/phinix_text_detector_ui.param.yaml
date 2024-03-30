@@ -1,0 +1,3 @@
+/**:
+  ros__parameters:
+    model: "super_light92" # "light_hifi" # "light_cmuartic" 

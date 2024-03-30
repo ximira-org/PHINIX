@@ -1,0 +1,16 @@
+#include "std_msgs/msg/Header.idl"
+#include "std_msgs/msg/String.idl"
+
+module message_interface {
+  module msg {
+    @verbatim (language="comment", text=
+      " Juggler msg")
+    struct JugMsg {
+      std_msgs::msg::Header header;
+      std_msgs::msg::String string;
+      std_msgs::msg::Int32 int32;
+      std_msgs::msg::Bool Bool;
+      std_msgs::msg::Float32 panning;
+    };
+  };
+};

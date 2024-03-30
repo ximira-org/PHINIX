@@ -6,6 +6,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Point
 from std_msgs.msg import String
+from std_msgs.msg import Int32MultiArray
 from phinix_perception_msgs.msg import BBoxMsg
 from cv_bridge import CvBridge
 import os 
@@ -20,14 +21,24 @@ from pathlib import Path
 import json
 from ament_index_python.packages import get_package_share_directory
 
+import threading
+
 VIS = True
 TOPIC_PHINIX_RAW_IMG = "/oak/rgb/image_raw"
 TOPIC_PHINIX_DEPTH_IMG = "/oak/depth/image_raw"
 TOPIC_PHINIX_DISPARITY_IMG = "/oak/disparity/image_raw"
 TOPIC_PHINIX_PREVIEW_IMG = "/phinix/vis/object_det"
 TOPIC_OBJ_DET_BBOX = "/phinix/module/object_det/bbox"
+TOPIC_NODE_STATES = "/phinix/node_states"
 
-CAM_FPS = 3.0
+object_detection_node_state_index = 5
+text_detection_node_state_index = 2
+path_detection_node_state_index = 1
+face_regestration_node_state_index = 4
+
+CAM_FPS = 16.0
+
+OBJECT_DETECTION_SKIP_EVERY = 4
 
 RES_MAP = {
     '800': {'w': 1280, 'h': 800, 'res': dai.MonoCameraProperties.SensorResolution.THE_800_P },
@@ -92,11 +103,91 @@ class OAKLaunch(Node):
 
     def __init__(self):
         super().__init__('oak_ros')
+
+        camera_thread = threading.Thread(target=self.camera_thread_function)
+        camera_thread.start()
+        '''
         self.subscription = self.create_subscription(
             Image,
             TOPIC_PHINIX_RAW_IMG,
             self.listener_callback,
             QoSProfile(depth=1, reliability=ReliabilityPolicy.BEST_EFFORT))
+        '''
+        self.node_state_subscriber = self.create_subscription(
+            Int32MultiArray, 
+            TOPIC_NODE_STATES, 
+            self.node_state_callback, 
+            10)      
+    
+
+    def update_bbox_msg(self, frame, detections, depth_frame):
+        # print("preview shape = ", frame.shape)
+        depth_delta = 10
+        for detection in detections:
+            bbox = self.frameNorm(frame, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
+            self.bbox_msg.top_left_x_ys.append(make_point(bbox[0]*1.0, bbox[1]*1.0))
+            self.bbox_msg.bottom_right_x_ys.append(make_point(bbox[2]*1.0, bbox[3]*1.0))
+            label_str = String()
+            label_str.data = self.labels[detection.label]
+            self.bbox_msg.classes.append(label_str)
+            self.bbox_msg.confidences.append(detection.confidence)
+            self.bbox_msg.module_name.data = "object_det"
+            self.bbox_msg.clock_angle.append(clock_angle((detection.xmin + detection.xmax)/ 2))
+
+            # depth (Z) calculation
+            depth_centroid = [(bbox[0] + bbox[2]) // 2 , (bbox[1] + bbox[3]) // 2]
+            x_min = max(depth_centroid[0] - int(depth_delta/2), 0) 
+            y_min = max(depth_centroid[1] - int(depth_delta/2), 0) 
+            x_max = min(depth_centroid[0] + int(depth_delta/2), depth_frame.shape[1]) 
+            y_max = min(depth_centroid[1] + int(depth_delta/2), depth_frame.shape[0]) 
+            depth_dist = np.mean(depth_frame[y_min:y_max, x_min:x_max]) / 1000 # mm to m
+            self.bbox_msg.depths.append(depth_dist)
+
+    # nn data, being the bounding box locations, are in <0..1> range - they need to be normalized with frame width/height
+    def frameNorm(self, frame, bbox):
+        normVals = np.full(len(bbox), frame.shape[0])
+        normVals[::2] = frame.shape[1]
+        return (np.clip(np.array(bbox), 0, 1) * normVals).astype(int)
+
+    def displayFrame(self, name, frame, detections):
+        color = (255, 0, 0)
+        for detection, depth in zip(detections, self.bbox_msg.depths):
+            bbox = self.frameNorm(frame, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
+            clk_angle = str(clock_angle((detection.xmin + detection.xmax)/ 2))
+            cv2.putText(frame, self.labels[detection.label] + " @ " + clk_angle + " @ " + str(depth)[0:4],
+                                    (bbox[0] + 10, bbox[1] + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, (0, 255, 0))
+            cv2.putText(frame, f"{int(detection.confidence * 100)}%", (bbox[0] + 10, bbox[1] + 40), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
+            cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
+        return frame
+    '''
+    def listener_callback(self, msg):
+        self.get_logger().info('Received an image')
+        im_rgb = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
+        result, elapse_list = self.rapid_ocr(im_rgb)
+        boxes = txts = scores = None
+        if VIS: 
+            if result is not None:
+                print(result)
+                print(elapse_list)
+                boxes, txts, scores = list(zip(*result))
+            np_img = np.array(im_rgb, dtype="uint8")
+            self.draw_and_publish(np_img, boxes, txts, scores)
+    '''
+
+    #Set node_active to true if node manager so
+    def node_state_callback(self, node_states: Int32MultiArray):
+        self.object_detection_active = node_states.data[object_detection_node_state_index] == 1
+        self.text_detection_active = node_states.data[text_detection_node_state_index] == 1
+        self.path_detection_active = node_states.data[path_detection_node_state_index] == 1
+        self.face_regestration_active = node_states.data[face_regestration_node_state_index] == 1
+
+
+    # Define a function that will run in a separate thread
+    def camera_thread_function(self):
+        self.object_detection_active = False
+        self.text_detection_active = False
+        self.path_detection_active = False
+
         self.rgb_publisher_ = self.create_publisher(Image, TOPIC_PHINIX_RAW_IMG, 10)
         self.depth_publisher_ = self.create_publisher(Image, TOPIC_PHINIX_DEPTH_IMG, 10)
         self.disparity_publisher_ = self.create_publisher(Image, TOPIC_PHINIX_DISPARITY_IMG, 10)
@@ -228,6 +319,8 @@ class OAKLaunch(Node):
         self.stereo.outConfig.link(self.xoutStereoCfg.input)
         self.bbox_msg = BBoxMsg()
 
+        self.object_detection_skip_count = 0
+
         with self.device:
             self.device.startPipeline(self.pipeline)
             self.device.setIrLaserDotProjectorBrightness(850) # in mA, 0..1200
@@ -237,17 +330,17 @@ class OAKLaunch(Node):
             # qList = [device.getOutputQueue(stream, 8, blocking=False) for stream in streams]
             config = inCfg.get()
 
-            qFrames = self.device.getOutputQueue(name="video", maxSize=8, blocking=False)
-            qDet = self.device.getOutputQueue(name="nn", maxSize=8, blocking=False)
-            qDisp = self.device.getOutputQueue(name="disparity", maxSize=8, blocking=False)
-            qDepth = self.device.getOutputQueue(name="depth", maxSize=8, blocking=False)
-            qleft = self.device.getOutputQueue(name="left", maxSize=8, blocking=False)
-            qright = self.device.getOutputQueue(name="right", maxSize=8, blocking=False)
+            self.qFrames = self.device.getOutputQueue(name="video", maxSize=8, blocking=False)
+            self.qDet = self.device.getOutputQueue(name="nn", maxSize=8, blocking=False)
+            self.qDisp = self.device.getOutputQueue(name="disparity", maxSize=8, blocking=False)
+            self.qDepth = self.device.getOutputQueue(name="depth", maxSize=8, blocking=False)
+            self.qleft = self.device.getOutputQueue(name="left", maxSize=8, blocking=False)
+            self.qright = self.device.getOutputQueue(name="right", maxSize=8, blocking=False)
             detections = []
             fps = FPSHandler()
             text = TextHelper()
             # Output queues will be used to get the rgb frames and nn data from the outputs defined above
-            qRgb = self.device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
+            self.qRgb = self.device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
             # qDet = device.getOutputQueue(name="nn", maxSize=4, blocking=False)
 
             frame = None
@@ -257,28 +350,59 @@ class OAKLaunch(Node):
             color2 = (255, 255, 255)
 
             while True:
-                inRgb = qRgb.get()
-                inDet = qDet.get()
-                inFrame = qFrames.get()
-                inDepth = qDepth.get()
-                inDisparity = qDisp.get()
+                inDepth = self.qDepth.get()
                 
-                if inDet is not None:
-                    detections = inDet.detections
-                    counter += 1
+                if inDepth is not None:
+                    dep_frame = inDepth.getFrame()
+                    dep_frame = dep_frame.astype(np.uint16)
+                    ros_depth = self.bridge.cv2_to_imgmsg(dep_frame, "16UC1")
+                    ros_depth.header.stamp = self.get_clock().now().to_msg()
+                    self.depth_publisher_.publish(ros_depth)
+                
+                if self.text_detection_active or self.path_detection_active or self.face_regestration_active:
 
-                if inRgb is not None:
-                    det_frame = inRgb.getCvFrame()
-                    cv2.putText(det_frame, "NN fps: {:.2f}".format(counter / (time.monotonic() - startTime)),
-                                (2, det_frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4, color2)
-            
-                if inFrame is not None:
-                    full_frame = inFrame.getCvFrame()
-                    full_frame = cv2.resize(full_frame, (640, 352))
-                    ros_full_Frame = self.bridge.cv2_to_imgmsg(full_frame, "bgr8")
-                    ros_full_Frame.header.stamp = self.get_clock().now().to_msg()
-                    self.rgb_publisher_.publish(ros_full_Frame)
+                    inFrame = self.qFrames.get()
+                
+                    if inFrame is not None:
+                        full_frame = inFrame.getCvFrame()
+                        full_frame = cv2.resize(full_frame, (960, 544))
+                        ros_full_Frame = self.bridge.cv2_to_imgmsg(full_frame, "bgr8")
+                        ros_full_Frame.header.stamp = self.get_clock().now().to_msg()
+                        self.rgb_publisher_.publish(ros_full_Frame)
+                        self.get_logger().info('Published an image')
 
+                if self.object_detection_active:
+
+                    if self.object_detection_skip_count < OBJECT_DETECTION_SKIP_EVERY:
+                        self.object_detection_skip_count += 1
+                        continue
+                    self.object_detection_skip_count = 0
+
+                    inDet = self.qDet.get()
+                    inRgb = self.qRgb.get()
+                    
+                    if inDet is not None:
+                        detections = inDet.detections
+                        counter += 1
+
+                    if inRgb is not None:
+                        det_frame = inRgb.getCvFrame()
+                        cv2.putText(det_frame, "NN fps: {:.2f}".format(counter / (time.monotonic() - startTime)),
+                                    (2, det_frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4, color2)
+
+                    self.update_bbox_msg(det_frame, detections, dep_frame)
+                    self.bbox_msg.header.stamp = self.get_clock().now().to_msg()
+                    self.bbox_publisher_.publish(self.bbox_msg)
+                    det_frame = self.displayFrame("rgb", det_frame, detections)
+                    # print("preview shape = ", frame.shape)
+                    ros_preview = self.bridge.cv2_to_imgmsg(det_frame, "bgr8")
+                    ros_preview.header.stamp = self.get_clock().now().to_msg()
+                    self.preview_publisher_.publish(ros_preview)
+                    self.bbox_msg = BBoxMsg()
+
+                '''
+                inDisparity = self.qDisp.get()
+                
                 if inDisparity is not None:
                     dis_frame = inDisparity.getCvFrame()
                     maxDisp = self.stereo.initialConfig.getMaxDisparity()
@@ -290,76 +414,7 @@ class OAKLaunch(Node):
                     ros_disparity = self.bridge.cv2_to_imgmsg(dis_frame, "bgr8")
                     ros_disparity.header.stamp = self.get_clock().now().to_msg()
                     self.disparity_publisher_.publish(ros_disparity)
-
-                if inDepth is not None:
-                    dep_frame = inDepth.getFrame()
-                    dep_frame = dep_frame.astype(np.uint16)
-                    ros_depth = self.bridge.cv2_to_imgmsg(dep_frame, "16UC1")
-                    ros_depth.header.stamp = self.get_clock().now().to_msg()
-                    self.depth_publisher_.publish(ros_depth)
-
-                self.update_bbox_msg(det_frame, detections, dep_frame)
-                self.bbox_msg.header.stamp = self.get_clock().now().to_msg()
-                self.bbox_publisher_.publish(self.bbox_msg)
-                det_frame = self.displayFrame("rgb", det_frame, detections)
-                # print("preview shape = ", frame.shape)
-                ros_preview = self.bridge.cv2_to_imgmsg(det_frame, "bgr8")
-                ros_preview.header.stamp = self.get_clock().now().to_msg()
-                self.preview_publisher_.publish(ros_preview)
-                self.bbox_msg = BBoxMsg()
-
-    def update_bbox_msg(self, frame, detections, depth_frame):
-        # print("preview shape = ", frame.shape)
-        depth_delta = 10
-        for detection in detections:
-            bbox = self.frameNorm(frame, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
-            self.bbox_msg.top_left_x_ys.append(make_point(bbox[0]*1.0, bbox[1]*1.0))
-            self.bbox_msg.bottom_right_x_ys.append(make_point(bbox[2]*1.0, bbox[3]*1.0))
-            label_str = String()
-            label_str.data = self.labels[detection.label]
-            self.bbox_msg.classes.append(label_str)
-            self.bbox_msg.confidences.append(detection.confidence)
-            self.bbox_msg.module_name.data = "object_det"
-            self.bbox_msg.clock_angle.append(clock_angle((detection.xmin + detection.xmax)/ 2))
-
-            # depth (Z) calculation
-            depth_centroid = [(bbox[0] + bbox[2]) // 2 , (bbox[1] + bbox[3]) // 2]
-            x_min = max(depth_centroid[0] - int(depth_delta/2), 0) 
-            y_min = max(depth_centroid[1] - int(depth_delta/2), 0) 
-            x_max = min(depth_centroid[0] + int(depth_delta/2), depth_frame.shape[1]) 
-            y_max = min(depth_centroid[1] + int(depth_delta/2), depth_frame.shape[0]) 
-            depth_dist = np.mean(depth_frame[y_min:y_max, x_min:x_max]) / 1000 # mm to m
-            self.bbox_msg.depths.append(depth_dist)
-
-    # nn data, being the bounding box locations, are in <0..1> range - they need to be normalized with frame width/height
-    def frameNorm(self, frame, bbox):
-        normVals = np.full(len(bbox), frame.shape[0])
-        normVals[::2] = frame.shape[1]
-        return (np.clip(np.array(bbox), 0, 1) * normVals).astype(int)
-
-    def displayFrame(self, name, frame, detections):
-        color = (255, 0, 0)
-        for detection, depth in zip(detections, self.bbox_msg.depths):
-            bbox = self.frameNorm(frame, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
-            clk_angle = str(clock_angle((detection.xmin + detection.xmax)/ 2))
-            cv2.putText(frame, self.labels[detection.label] + " @ " + clk_angle + " @ " + str(depth)[0:4],
-                                    (bbox[0] + 10, bbox[1] + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, (0, 255, 0))
-            cv2.putText(frame, f"{int(detection.confidence * 100)}%", (bbox[0] + 10, bbox[1] + 40), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
-            cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
-        return frame
-
-    def listener_callback(self, msg):
-        im_rgb = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
-        result, elapse_list = self.rapid_ocr(im_rgb)
-        boxes = txts = scores = None
-        if VIS: 
-            if result is not None:
-                print(result)
-                print(elapse_list)
-                boxes, txts, scores = list(zip(*result))
-            np_img = np.array(im_rgb, dtype="uint8")
-            self.draw_and_publish(np_img, boxes, txts, scores)
-
+                '''
         
 def main(args=None):
     rclpy.init(args=args)

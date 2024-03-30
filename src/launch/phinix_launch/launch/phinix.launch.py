@@ -11,6 +11,15 @@ from launch_ros.actions import  Node
 
 def generate_launch_description():
 
+    launch_pkg_prefix = get_package_share_directory('phinix_launch')
+    launch_param_file = os.path.join(
+        launch_pkg_prefix, 'param/phinix.param.yaml')
+    launch_param = DeclareLaunchArgument(
+        'launch_param_file',
+        default_value=launch_param_file,
+        description='launch settings'
+    )
+
     tts_balacoon_pkg_prefix = get_package_share_directory('phinix_tts_balacoon')
     tts_balacoon_node_param_file = os.path.join(
         tts_balacoon_pkg_prefix, 'param/phinix_tts_balacoon.param.yaml')
@@ -78,21 +87,77 @@ def generate_launch_description():
         parameters=[LaunchConfiguration('face_rec_node_param_file')],
     )
 
+    phinix_sound_effects_ui_node = Node(
+        package="phinix_sound_effects_ui",
+        executable="phinix_sound_effects_ui_py_exe"
+    )
+
+    phinix_haptics_ui_node = Node(
+        package="phinix_haptics_ui",
+        executable="phinix_haptics_ui_py_exe"
+    )
+
+    phinix_node_manager_node = Node(
+        package="phinix_node_manager",
+        executable="phinix_node_manager_py_exe",
+        parameters=[LaunchConfiguration('launch_param_file')],
+    )
+
+    phinix_ui_message_juggler_node = Node(
+        package="phinix_ui_message_juggler",
+        executable="phinix_ui_message_juggler_py_exe"
+    )
+
+    phinix_obstacle_detector_ui_translator_node = Node(
+        package="phinix_obstacle_detector_ui_translator",
+        executable="phinix_obstacle_detector_ui_translator_py_exe"
+    )
+
+    phinix_object_detector_ui = Node(
+        package="phinix_object_detector_ui",
+        executable="phinix_object_detector_ui_py_exe"
+    )
+
+    phinix_text_detector_ui = Node(
+        package="phinix_text_detector_ui",
+        executable="phinix_text_detector_ui_py_exe"
+    )
+
+    phinix_sidewalk_detector = Node(
+        package="phinix_sidewalk_detector",
+        executable="phinix_sidewalk_detector_py_exe"
+    )
+
 
     ld = [
+        launch_param,
         oak_ros_node,
-        phinix_obstacle_detector_node,
-        tts_balacoon_param,
-        face_rec__param,
-        phinix_text_detector_node,
-        # phinix_tts_simulator_node,
-        phinix_tts_balacoon_node,
         phinix_sensor_abstractor_node,
-        phinix_face_rec_node,
-        phinix_face_reg_node,
-        # phinix_wakeword_node
+
+        phinix_node_manager_node,
+
+        phinix_text_detector_node,
+        phinix_sidewalk_detector,
+
+        #phinix_face_rec_node,
+        #face_rec__param,
+        #phinix_face_reg_node,
+        
+        tts_balacoon_param,
+        phinix_tts_balacoon_node,
+        #phinix_tts_simulator_node,
+
+        phinix_ui_message_juggler_node,
+
+        phinix_wakeword_node,
+
+        phinix_sound_effects_ui_node,
+        phinix_haptics_ui_node,
+        phinix_object_detector_ui,
+        phinix_text_detector_ui
+        
+        #phinix_obstacle_detector_node,
+        #phinix_obstacle_detector_ui_translator_node,
     ]
 
     return LaunchDescription(ld)
-
-

@@ -1,0 +1,47 @@
+"Obstacle detected Top Right", 2, 0, 1612314896
+"Obstacle detected Top Left", 2, 1, 1612314880
+"Obstacle detected Bottom Center", 2, 0, 1612314899
+"Obstacle detected Middle Center", 2, 1, 1612314880
+"Obstacle detected Bottom Left", 2, 0, 1612314906
+"Obstacle detected Middle Right", 2, 1, 1612314880
+"Obstacle detected Top Center", 2, 0, 1612314913
+"Obstacle detected Bottom Left", 2, 1, 1612314880
+"Obstacle detected Bottom Right", 2, 0, 1612314920
+"Obstacle detected Middle Left", 2, 1, 1612314880
+"Person detected in Right: Ben", 4, 0, 1612314927
+"Person detected in Left: Breean", 4, 1, 1612314880
+"Person detected in Middle: Jagadish", 4, 0, 1612314934
+"Battery level low: 20%", 3, 1, 1612314880
+"Battery level critical: 10%", 3, 0, 1612314941
+"Battery critical: Mira shutting down", 3, 1, 1612314880
+"Person detected in Middle: Jagadish", 4, 0, 1612314948
+"Repeat that Mira", 5, 1, 1612314880
+"Repeat statement", 5, 0, 1612314956
+"System Settings", 5, 1, 1612314880
+"Emergency", 5, 0, 1612314963
+"Memorize Person: Mehrad", 5, 1, 1612314880
+"Memorize Person: Jessica", 5, 0, 1612314970
+"Set Volume: 2", 5, 1, 1612314880
+"Set Volume: 1", 5, 0, 1612314977
+"Set Volume: 3", 5, 1, 1612314880
+"Set Quiet Mode", 5, 0, 1612314984
+"Battery Level", 5, 1, 1612314880
+"Enable Haptics", 5, 0, 1612314991
+"Disable Haptics", 5, 1, 1612314880
+"Save location as: home", 5, 0, 1612314998
+"Save location as: work", 5, 1, 1612314880
+"Save location as: school", 5, 0, 1612315005
+"Save location as: Ben house", 5, 1, 1612314880
+"Save location as: Breeans coffee", 5, 0, 1612315012
+"Save location as: Jagadish office", 5, 1, 1612314880
+"Start navigation to: home", 5, 0, 1612315019
+"Start navigation to: work", 5, 1, 1612314880
+"Start navigation to: school", 5, 0, 1612315026
+"Start navigation to: Ben house", 5, 1, 1612314880
+"Start navigation to: Breeans coffee", 5, 0, 1612315033
+"Start navigation to: Jagadish office", 5, 1, 1612314880
+"Recite text", 5, 0, 1612314880
+"Describe my surroundings", 5, 1, 1612314880
+"Describe", 5, 0, 1612315047
+"Configure settings", 5, 1, 1612314880
+"System settings", 5, 0, 1612315054
