@@ -1,13 +1,35 @@
 repositories:
-  src/external/depthai-ros:
+  src/manager/phinix_node_manager:
     type: git
-    url: https://github.com/luxonis/depthai-ros.git
-    version: foxy
+    url: git@github.com:ximira-org/phinix_node_manager.git
+    version: main
+
   src/phinix_ui/phinix_tts_balacoon:
     type: git
     url: git@github.com:ximira-org/phinix_tts_balacoon.git
-    version: main
+    version: ben/tts_broadcasts_availability
+
   src/phinix_ui/phinix_openwakeword:
     type: git
     url: git@github.com:ximira-org/phinix_openwakeword.git
+    version: ben/connect_to_node_manager
+
+  src/phinix_ui/phinix_sound_effects_ui:
+    type: git
+    url: git@github.com:ximira-org/phinix_sound_effects_ui.git
+    version: ben/direct_depth_sfx_ui
+
+  src/phinix_ui/phinix_haptics_ui:
+    type: git
+    url: git@github.com:ximira-org/phinix_haptics_ui.git
     version: main
+    
+  src/phinix_ui/phinix_ui_message_juggler:
+    type: git
+    url: git@github.com:ximira-org/phinix_ui_message_juggler.git
+    version: ben/integrate_with_ui
+
+  src/phinix_ui/phinix_obstacle_detector_ui_translator:
+    type: git
+    url: git@github.com:ximira-org/phinix_obstacle_detector_ui_translator.git
+    version: ben/obs_det_only_six_cells
