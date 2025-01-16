@@ -160,14 +160,6 @@ class OAKLaunch(Node):
         self.stereo.setSubpixel(self.subpixel)
 
         self.config = self.stereo.initialConfig.get()
-        # self.config.postProcessing.speckleFilter.enable = False
-        # self.config.postProcessing.speckleFilter.speckleRange = 50
-        # self.config.postProcessing.temporalFilter.enable = True # slows down
-        # self.config.postProcessing.spatialFilter.enable = True # slows down
-        # self.config.postProcessing.spatialFilter.holeFillingRadius = 2 
-        # self.config.postProcessing.spatialFilter.numIterations = 1
-        # self.config.postProcessing.thresholdFilter.minRange = 400
-        # self.config.postProcessing.thresholdFilter.maxRange = 15000
         self.config.postProcessing.decimationFilter.decimationFactor = 1
         self.stereo.initialConfig.set(self.config)
 
@@ -188,19 +180,12 @@ class OAKLaunch(Node):
         self.xoutVideo = self.pipeline.create(dai.node.XLinkOut)
 
         self.xoutVideo.setStreamName("video")
-        # self.Properties
-        # self.camRgb.setBoardSocket(dai.CameraBoardSocket.CAM_A)
         self.camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_720_P)
-        # self.camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_4_K)
-        # self.camRgb.setVideoSize(3840,2160)
-        # self.camRgb.setIspScale(1,1)
         self.camRgb.video.link(self.xoutVideo.input)
         self.camRgb.setPreviewSize(self.W, self.H)
         self.camRgb.setInterleaved(False)
         self.camRgb.setFps(CAM_FPS)
-        # self.camRgb.setPreviewKeepAspectRatio(False)
 
-        # self.nn = pipeline.create(dai.node.MobileNetDetectionNetwork)
         self.detectionNetwork = self.pipeline.create(dai.node.YoloDetectionNetwork)
 
         # Network specific settings
@@ -234,7 +219,6 @@ class OAKLaunch(Node):
             self.device.setIrFloodLightBrightness(0) # in mA, 0..1500
             inCfg = self.device.getOutputQueue("stereo_cfg", 8, blocking=False)
             # Create a receive queue for each stream
-            # qList = [device.getOutputQueue(stream, 8, blocking=False) for stream in streams]
             config = inCfg.get()
 
             qFrames = self.device.getOutputQueue(name="video", maxSize=8, blocking=False)
@@ -248,7 +232,6 @@ class OAKLaunch(Node):
             text = TextHelper()
             # Output queues will be used to get the rgb frames and nn data from the outputs defined above
             qRgb = self.device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
-            # qDet = device.getOutputQueue(name="nn", maxSize=4, blocking=False)
 
             frame = None
             detections = []
@@ -302,14 +285,12 @@ class OAKLaunch(Node):
                 self.bbox_msg.header.stamp = self.get_clock().now().to_msg()
                 self.bbox_publisher_.publish(self.bbox_msg)
                 det_frame = self.displayFrame("rgb", det_frame, detections)
-                # print("preview shape = ", frame.shape)
                 ros_preview = self.bridge.cv2_to_imgmsg(det_frame, "bgr8")
                 ros_preview.header.stamp = self.get_clock().now().to_msg()
                 self.preview_publisher_.publish(ros_preview)
                 self.bbox_msg = BBoxMsg()
 
     def update_bbox_msg(self, frame, detections, depth_frame):
-        # print("preview shape = ", frame.shape)
         depth_delta = 10
         for detection in detections:
             bbox = self.frameNorm(frame, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
