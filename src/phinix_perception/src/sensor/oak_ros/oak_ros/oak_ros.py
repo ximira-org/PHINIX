@@ -160,14 +160,6 @@ class OAKLaunch(Node):
         self.stereo.setSubpixel(self.subpixel)
 
         self.config = self.stereo.initialConfig.get()
-        # self.config.postProcessing.speckleFilter.enable = False
-        # self.config.postProcessing.speckleFilter.speckleRange = 50
-        # self.config.postProcessing.temporalFilter.enable = True # slows down
-        # self.config.postProcessing.spatialFilter.enable = True # slows down
-        # self.config.postProcessing.spatialFilter.holeFillingRadius = 2 
-        # self.config.postProcessing.spatialFilter.numIterations = 1
-        # self.config.postProcessing.thresholdFilter.minRange = 400
-        # self.config.postProcessing.thresholdFilter.maxRange = 15000
         self.config.postProcessing.decimationFilter.decimationFactor = 1
         self.stereo.initialConfig.set(self.config)
 
@@ -293,7 +285,6 @@ class OAKLaunch(Node):
                 self.bbox_msg.header.stamp = self.get_clock().now().to_msg()
                 self.bbox_publisher_.publish(self.bbox_msg)
                 det_frame = self.displayFrame("rgb", det_frame, detections)
-                # print("preview shape = ", frame.shape)
                 ros_preview = self.bridge.cv2_to_imgmsg(det_frame, "bgr8")
                 ros_preview.header.stamp = self.get_clock().now().to_msg()
                 self.preview_publisher_.publish(ros_preview)
