@@ -11,7 +11,7 @@ in three dimensions, analyze the scene using Artificial Intelligence (AI), and
 communicate with the user using audio and/or haptic feedback. To learn more about
 PHINIX, please visit [Ximira's Product page](https://ximira.org/product).
 
-PHINIX is developed by Ximira, a not-for-profit organization with a mission to
+PHINIX is developed by Ximira with a mission to
 develop an innovative, wearable system that gives blind users more freedom to
 participate in all aspects of society. To learn more about our story, please
 visit [Ximira's About Us page](https://ximira.org/about).
